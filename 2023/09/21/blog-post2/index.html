@@ -1,0 +1,1278 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="perfectbullet">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="参考链接redis内部数据结构详解,  适合看看大概实现和为什么要这样实现 https:&#x2F;&#x2F;cloud.tencent.com&#x2F;developer&#x2F;article&#x2F;2220233 第一章 序言1.3 推荐的阅读方法  第一部分数据结构与对象第2章 简单动态字符串 第3章 链表 第4章 字典 第5章 跳跃表 第6章 数集合 第7章 压缩列表 第8章 对象 第2章简 简单动态字符串​	Redis 没有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis设计与实践读书笔记">
+<meta property="og:url" content="https://perfectbullet.github.io/2023/09/21/blog-post2/index.html">
+<meta property="og:site_name" content="perfectbullet.github.io">
+<meta property="og:description" content="参考链接redis内部数据结构详解,  适合看看大概实现和为什么要这样实现 https:&#x2F;&#x2F;cloud.tencent.com&#x2F;developer&#x2F;article&#x2F;2220233 第一章 序言1.3 推荐的阅读方法  第一部分数据结构与对象第2章 简单动态字符串 第3章 链表 第4章 字典 第5章 跳跃表 第6章 数集合 第7章 压缩列表 第8章 对象 第2章简 简单动态字符串​	Redis 没有">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211220332240.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211222430273.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211223052325.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211223342128.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211223620606.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211223643826.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211224051133.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211224227549.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211224508728.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211224523733.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211225807862.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211225905066.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211225948427.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211230055837.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211230113459.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230212214758860.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230212220215477.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230212221946379.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230212222245393.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-202302122223082202.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230213221641425.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230213223411514.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230213225016435.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230214210606289.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230214214308217.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230214215010096.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230214220859974.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230214222941399.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217222355419.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217225943520.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217231049637.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217231637360.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217233111478.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217233235582.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217233707203.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230217233915326.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222213602549.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222215827056.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222215854744.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222223058368.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222224607586.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222225225835.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222232145895.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230222232454683.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223212453344.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223213413003.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223213917408.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223214008230.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223220605551.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223220708962.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223221539610.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230223221650576.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226205956889.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226210323429.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226210924733.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226210957792.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226215753114.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226215954763.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226224203390.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230226225340395.png">
+<meta property="article:published_time" content="2023-09-20T16:03:49.000Z">
+<meta property="article:modified_time" content="2023-09-20T16:28:02.978Z">
+<meta property="article:author" content="perfectbullet">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="索引">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://perfectbullet.github.io/2023/09/21/blog-post2/image-20230211220332240.png">
+  
+  
+  
+  <title>Redis设计与实践读书笔记 - perfectbullet.github.io</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"perfectbullet.github.io","root":"/","version":"1.9.5-a","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>小猪佩奇的飞雪如歌</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Redis设计与实践读书笔记"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-09-21 00:03" pubdate>
+          2023年9月21日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          28k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          232 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Redis设计与实践读书笔记</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><p>redis内部数据结构详解,  适合看看大概实现和为什么要这样实现</p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2220233">https://cloud.tencent.com/developer/article/2220233</a></p>
+<h1 id="第一章-序言"><a href="#第一章-序言" class="headerlink" title="第一章 序言"></a>第一章 序言</h1><h2 id="1-3-推荐的阅读方法"><a href="#1-3-推荐的阅读方法" class="headerlink" title="1.3 推荐的阅读方法"></a>1.3 推荐的阅读方法</h2><img src="/2023/09/21/blog-post2/image-20230211220332240.png" srcset="/img/loading.gif" lazyload class="">
+
+<h1 id="第一部分"><a href="#第一部分" class="headerlink" title="第一部分"></a>第一部分</h1><h1 id="数据结构与对象"><a href="#数据结构与对象" class="headerlink" title="数据结构与对象"></a>数据结构与对象</h1><p>第2章 简单动态字符串</p>
+<p>第3章 链表</p>
+<p>第4章 字典</p>
+<p>第5章 跳跃表</p>
+<p>第6章 数集合</p>
+<p>第7章 压缩列表</p>
+<p>第8章 对象</p>
+<h1 id="第2章简-简单动态字符串"><a href="#第2章简-简单动态字符串" class="headerlink" title="第2章简 简单动态字符串"></a>第2章简 简单动态字符串</h1><p>​	Redis 没有直接使用 C 语言传统的字符串表示(以空字符 ‘\0’ 结尾的字符数组，以下简称C字符串)，而是自己构建了一种名为简单动态字符(simple dynamic string，SDS)的抽象类型，并将 SDS 用作 Redis 的默认字符串表示。</p>
+<p>​	在 Redis 里面，C字符只会作为字符字面量(string literal)用在一些无须对字符串值进行修改的地方，比如打印日志:</p>
+<p>​	当Redis需要的不仅仅是一个字符串字面量，而是一个可以被修改的字符串值时，Redis就会使用SDS来表示字符值，比如在 Redis 的数据里面，包含字符值的键值对在底层都是由SDS实现的。</p>
+<p>举个例子，如果客户端执行命令:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sh">redis&gt; SET msg <span class="hljs-string">&quot;hello world&quot;</span><br>OK<br></code></pre></td></tr></table></figure>
+
+<p>那么 Redis 将在数据库中创建一个新的键值对，其中:</p>
+<ul>
+<li>键值对的键是一个字符对象，对象的底层实现是一个保存着字符“msg”的 SDS.</li>
+<li>键值对的值也是一个字符串对象，对象的底层实现是一个保存着字符串”he11oworld”的SDS.</li>
+</ul>
+<p>除了用来保存数据库中的字符串值之外，SDS还被用作缓冲区(buffer):AOF 模块中的AOF 缓冲区，以及客户端状态中的输人缓冲区，都是由 SDS 实现的，在之后介绍AOF持久化和客户端状态的时候，我们会看到 SDS 在这两个模块中的应用。</p>
+<h2 id="2-1-SDS的定义"><a href="#2-1-SDS的定义" class="headerlink" title="2.1 SDS的定义"></a>2.1 SDS的定义</h2><p>每个 sds.h&#x2F;sdshdr 结构表示一个SDS 值</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sdshdr</span>&#123;</span><br>    <span class="hljs-comment">//记录 buf 数组中已使用字节的数量</span><br>    <span class="hljs-comment">// 等于 SDS 所保存字符串的长度</span><br>	<span class="hljs-type">int</span> len;<br>	<span class="hljs-comment">// 记录 buf 数组中未使用字节的数量</span><br>	<span class="hljs-type">int</span> <span class="hljs-built_in">free</span>;<br>	<span class="hljs-comment">// 字节数组，用于保存字符串</span><br>    <span class="hljs-type">char</span> buf[l;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/21/blog-post2/image-20230211222430273.png" srcset="/img/loading.gif" lazyload class="">
+
+<ul>
+<li>free 属性的值为 0，表示这个 SDS 没有分配任何使用空间</li>
+<li>len 属性的值为 5，表示这个 SDS 保存了一个五字节长的字符</li>
+<li>buf属性是一个char类型的数组，数组的前五个字节分别保存了 ‘R’, ‘e’, ‘d’, ‘i’、’s，五个字符，而最后一个字节则保存了空字符’\0’</li>
+</ul>
+<p>​	SDS遵循C字符串以空字符结尾的惯例，保存空字符的1字节空间不计算在 SDS的len 属性里面，并且为空字符分配额外的 1字节空间，以及添加空字符到字符申末尾等操作，都是由 SDS 函数自动完成的，所以这个空字符对于SDS 的使用者来说是完全透明的遵循空字符结尾这一惯例的好处是，SDS 可以直接重用一部分C 符串函数库里面的函数.</p>
+<img src="/2023/09/21/blog-post2/image-20230211223052325.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>图2-2展示了另一个SDS示例。这个SDS 和之前展示的SDS一样，都保存了字符串值”Redis”。这个SDS 和之前展示的SDS的区别在于，这个SDS 为buf 数组分配了五字节未使用空间，所以它的 free  的值为 5(图中使用五个空格来表示五字节的未使用空间)。</p>
+<h2 id="2-2-SDS与C字符串的区别"><a href="#2-2-SDS与C字符串的区别" class="headerlink" title="2.2  SDS与C字符串的区别"></a>2.2  SDS与C字符串的区别</h2><p>根据传统，C 语言使用长度为 N+1 的字符数组来表示长度为N的字符，并且字符数组的最后一个元素总是空字符 ‘\0’</p>
+<img src="/2023/09/21/blog-post2/image-20230211223342128.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>例如，图2-3 就展示了一个值为“Redis”的C字符串</p>
+<p>C语言使用的这种简单的字符申表示方式，并不能满足 Redis 对字符申在安全性、效率以及功能方面的要求，本节接下来的内容将详细对比C字符串和SDS之间的区别，并说明 SDS比C字符申更适用于 Redis 的原因</p>
+<h3 id="2-2-1-常数复杂度获取字符串长度"><a href="#2-2-1-常数复杂度获取字符串长度" class="headerlink" title="2.2.1 常数复杂度获取字符串长度"></a>2.2.1 常数复杂度获取字符串长度</h3><p>​	因为 C字符串并不记录自身的长度信息，所以为了获取一个 C 字符串的长度，程序必须遍历整个字符串，对遇到的每个字符进行计数，直到遇到代表字符串结尾的空字符为止，这个操作的复杂度为 O(N)。</p>
+<img src="/2023/09/21/blog-post2/image-20230211223620606.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​	举个例子，图 2-4 展示了程序计算一个 C字符串长度的过程。</p>
+<p>​	和C字符串不同，因为SDS在len 属性中记录了 SDS 本身的长度，所以获取一个 SDS长的复杂度仅 0(1)。</p>
+<img src="/2023/09/21/blog-post2/image-20230211223643826.png" srcset="/img/loading.gif" lazyload class="">	举个例子，对于图2-5 所示的SDS来说，程序只要访问 SDS的 len 属性，就可以立即知道SDS的长度为5字节。
+<pre><code class="hljs">又例如，对于图 2-6 展示的SDS 来说，程序只要访问 SDS的 len 属性，就可以立即知道SDS的长度为11字节。
+</code></pre>
+<p>设置和更新SDS长度的工作是由 SDS的API在执行时自动完成的，使用SDS 无须进行任何手动修改长度的工作。</p>
+<h3 id="2-2-2-杜绝缓冲区溢出"><a href="#2-2-2-杜绝缓冲区溢出" class="headerlink" title="2.2.2 杜绝缓冲区溢出"></a>2.2.2 杜绝缓冲区溢出</h3><p>​	除了获取字符串长度的复杂度高之外，C 字符串不记录自身长度带来的另一个问题是容易造成缓冲区溢出(bufer overow)。举个例子，&lt;string.h&gt;&#x2F;strcat 函数可以将 src 字符串中的内容拼接到 dest 字符串的末尾:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">char</span> *<span class="hljs-title function_">strcat</span><span class="hljs-params">(<span class="hljs-type">char</span> *dest, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *src)</span><br></code></pre></td></tr></table></figure>
+
+<p>​	因为C字符串不记录自身的长度，所以 strcat 假定用户在执行这个函数时，已经为dest 分配了足够多的内存，可以容纳 src 字符串中的所有内容，而一旦这个假定不成立时，就会产生缓冲区溢出。<br>​	举个例子，假设程序里有两个在内存中紧邻着的C字符 s1 和 s2，其s1保存了符串“Redis”，而 s2 则保存了字符串“MongoDB”，如图2-7所。</p>
+<img src="/2023/09/21/blog-post2/image-20230211224051133.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>如果一个程序员决定通过执行:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-built_in">strcat</span>(s1, <span class="hljs-string">&quot; Cluster&quot;</span>);<br></code></pre></td></tr></table></figure>
+
+<p>​	将s1的内容修改为”Redis cluster”，但粗心的他却忘了在执行 strcat 之前为s1分配足够的空间，那么在 strcat 函数执行之后，s1 的数据将溢出到 s2 所在的空间中导致 s2 保存的内容被意外地修改，如图 2-8 所示。</p>
+<img src="/2023/09/21/blog-post2/image-20230211224227549.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​	与C字符串不同，SDS 的空间分配策略完全杜绝了发生缓冲区溢出的可能性:当SDSAPI需要对SDS进行修时，API会先检SDS 的间是否所的求，如果不满足的话，API会自动将 SDS 的空间扩展至执行修改所需的大小，然后才执行实际的修改操作，所以使用SDS 既不需要手动修改 SDS 的空间大小，也不会出现前面所说的缓冲区出问题。</p>
+<img src="/2023/09/21/blog-post2/image-20230211224508728.png" srcset="/img/loading.gif" lazyload class="">
+
+<img src="/2023/09/21/blog-post2/image-20230211224523733.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="2-23-减少修改字符串时带来的内存重分配次数"><a href="#2-23-减少修改字符串时带来的内存重分配次数" class="headerlink" title="2.23 减少修改字符串时带来的内存重分配次数"></a>2.23 减少修改字符串时带来的内存重分配次数</h3><p>​	因为 C 字符串并不记录自身的长度，所以对于一个包含了 N个字符的 C字符串来说，这个 C 字符的底层实现总是一个 N1个字符长的数组(额外的个字符空间用于保存空字符)。因为 C字符的长度和底层数组的长度之间存在着这种关联性，所以每次增长或者缩短一个 C字符串，序都总要对保存这个 C字符的数组进行一次内存重分配操作</p>
+<ul>
+<li>如果序执行的是增长字符的操作，比如拼接操作 (append)，那么在执行这个作之前，程序需要先通过内存重分配来扩展底层数组的空间大小一一如果忘了这一步就会产生缓冲区溢出。</li>
+<li>如果程序执行的是缩短字符的操作，比如截断操作(trim)那在行这个操作之后，程序需要通过内存重分配来释放字符串不再使用的那部分空间一-如果忘了这一步就会产生内存泄漏。</li>
+</ul>
+<p>因为内存重分配涉及复杂的算法，并且可能需要执行系统调用，所以它通常是一个比较耗时的操作:</p>
+<ul>
+<li>在一般程序中，如果修改字符串长度的情况不太常出现，那么每次修改都执行一次内存重分配是可以接受的。</li>
+<li>但是 Redis 作为数据库，经常被用于速度要求严苛、数据被频繁修改的场合，如果每次修改字符串的长度都需要执行一次内存重分配的话，那么光是执行内存重分配的时间就会占去修改字符串所用时间的一大部分，如果这种修改频繁地发生的话可能还会对性能造成影响。</li>
+</ul>
+<p>​	为了避免 C 字符串的这种缺陷，SDS 通过未使用空间解除了字符串长度和底层数组长度之间的关联: 在 SDS 中，buf 数组的长度不一定就是字符数量加一，数组里面可以包含未使用的字节，而这些字节的数量就由 SDS的 free 属性记录。</p>
+<p>通过未使用空间<strong>，SDS实现了空间预分配和惰性空间释放两种优化策略</strong></p>
+<p><strong>1.空间预分配</strong></p>
+<p>​	空间预分配用于优化SDS 的字符串增长操作:当SDS的API对一个SDS进行修改并且需要对 SDS 进行空间扩展的时候，程序不仅会为 SDS 分配修改所必须要的空间，还会为SDS分配额外的未使用空间。</p>
+<p><strong>2.性空间释放</strong></p>
+<p>​	惰性空间释放用于优化 SDS 的字符申缩短操作:当SDS的API需要缩短SDS保存的字符串时，程序并不立即使用内存重分配来回收缩短后多出来的字节，而是使用 free 属性将这些字节的数量记录起来，并等待将来使用。</p>
+<h3 id="2-2-4-二进制安全"><a href="#2-2-4-二进制安全" class="headerlink" title="2.2.4 二进制安全"></a>2.2.4 二进制安全</h3><p>​	C 字符串中的字符必须符合某种编码(比如ASCI)，并且除了字符的末尾之外符串里面不能包含空字符，否则最先被程序读人的空字符将被误认为是字符申结尾，这些限制使得C字符串只能保存文本数据，而不能保存像图片、音频、视频、压缩文件这样的二进制数据。<br>​	举个例子，如果有一种使用空字符来分割多个单词的特殊数据格式，如图2-17 所示那么这种格式就不能使用C字符串来保存，因为 C字符串所用的函数只会识别出其中的 “Redis”，而忽略之后的“Cluster”。</p>
+<img src="/2023/09/21/blog-post2/image-20230211225807862.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<img src="/2023/09/21/blog-post2/image-20230211225905066.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="2-2-5-兼容部分C字符串函数"><a href="#2-2-5-兼容部分C字符串函数" class="headerlink" title="2.2.5 兼容部分C字符串函数"></a>2.2.5 兼容部分C字符串函数</h3><p>​	虽然SDS的API都是二进制安全的，但它们一样遵循C字符以空字符结尾的惯例这些API总会将 SDS 保存的数据的末尾设置为空字符，并且总会在为 buf数组分配空间时多分配一个字节来容纳这个空字符，这是为了让那些保存文本数据的 SDS 可以重用一部分&lt;string.h&gt;库定义的函数。</p>
+<img src="/2023/09/21/blog-post2/image-20230211225948427.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="2-2-6-总结"><a href="#2-2-6-总结" class="headerlink" title="2.2.6 总结"></a>2.2.6 总结</h3><p>表2-1对C字符串和SDS 之间的区别进行了总结</p>
+<img src="/2023/09/21/blog-post2/image-20230211230055837.png" srcset="/img/loading.gif" lazyload class="">
+
+<img src="/2023/09/21/blog-post2/image-20230211230113459.png" srcset="/img/loading.gif" lazyload class="">
+
+<h2 id="2-4-重点回顾"><a href="#2-4-重点回顾" class="headerlink" title="2.4 重点回顾"></a>2.4 重点回顾</h2><ul>
+<li>Redis 只会使用C字符申作为字面量，在大多数情况下，Redis 使用SDS(SimpleDynamic String，简单动态字符串)作为字符串表示。</li>
+<li>比起C字符串，SDS 具有以下优点:</li>
+</ul>
+<ol>
+<li>常数复杂度取符度</li>
+<li>杜绝缓冲区溢出</li>
+<li>减少修字符长度时所需的内存重分配次数</li>
+<li>二制安全</li>
+<li>兼容部分C符函</li>
+</ol>
+<h1 id="第3章-表链"><a href="#第3章-表链" class="headerlink" title="第3章 表链"></a>第3章 表链</h1><p>​	<strong>链表</strong>提供了高效的节点重排能力，以及顺序性的节点访问方式，并且可以通过增删节点来灵活地调整链表的长度。</p>
+<p>​	作为一种常用数据结构，链表内置在很多高级的编程语言里面，因为 Redis 使用的C语言并没有内置这种数据结构，所以 Redis 构建了自己的链表实现。</p>
+<p>​	链表在 Redis 中的应用非常广泛，比如<strong>列表键</strong>的底层实现之一就是链表。当一个列表键包含了数量比较多的元素，又或者列表中包含的元素都是比较长的字符串时，Redis 就会使用链表作为列表键的底层实现。</p>
+<p>​	<strong>除了链表键之外，发布与订阅、慢查询、监视器等功能也用到了链表</strong>，Redis 服务器本身还使用链表来保存多个客户端的状态信息，以及使用链表来构建客户端输出缓冲区(output buffer)本书后续的章节将陆续对这些链表应用进行介绍。</p>
+<h2 id="3-1-链表和链表节点的实现"><a href="#3-1-链表和链表节点的实现" class="headerlink" title="3.1 链表和链表节点的实现"></a>3.1 链表和链表节点的实现</h2><p>每个链表节点使用一个 <code>adlist.h/listnode</code> 结构来表示</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">listNode</span> &#123;</span><br>    <span class="hljs-comment">// 前置节点</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">listNode</span> *<span class="hljs-title">prev</span>;</span><br>    <span class="hljs-comment">// 后置节点</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">listNode</span> *<span class="hljs-title">next</span>;</span><br>    <span class="hljs-comment">// 节点的值    这里 void * 是可以指向任意类型的指针</span><br>    <span class="hljs-type">void</span> *value;<br>&#125;<br>listNode;<br></code></pre></td></tr></table></figure>
+
+<p>多个listNode可以通过 prev 和 next 指针组成双端链表，如图3-1所示</p>
+<img src="/2023/09/21/blog-post2/image-20230212214758860.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>虽然仅仅使用多个 listNode 结构就可以组成链表，但使用adlisth&#x2F;list 来持有链表的话，操作起来会更方便:</p>
+<p>(<img src="/2023/09/21/blog-post2/image-20230212220215477.png" srcset="/img/loading.gif" lazyload class=""></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title function_">list</span> <span class="hljs-params">(</span><br><span class="hljs-params">	<span class="hljs-comment">// 表头节点</span></span><br><span class="hljs-params">    listNode *head;</span><br><span class="hljs-params">	<span class="hljs-comment">// 尾节点</span></span><br><span class="hljs-params">	listNode *tail;</span><br><span class="hljs-params">	<span class="hljs-comment">// 链表所包含的节点数量</span></span><br><span class="hljs-params">    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> lenj</span><br><span class="hljs-params">	<span class="hljs-comment">//节点值复制函数</span></span><br><span class="hljs-params">    <span class="hljs-type">void</span> *(*dup)(<span class="hljs-type">void</span> *ptr);</span><br><span class="hljs-params">	<span class="hljs-comment">// 节点值释放函数</span></span><br><span class="hljs-params">    <span class="hljs-type">void</span> (*<span class="hljs-built_in">free</span>)(<span class="hljs-type">void</span> *ptr);</span><br><span class="hljs-params">	<span class="hljs-comment">// 节点值对比函数</span></span><br><span class="hljs-params">    <span class="hljs-type">int</span> (*match)(<span class="hljs-type">void</span> *ptr,<span class="hljs-type">void</span> *key);</span><br><span class="hljs-params">&#125; <span class="hljs-built_in">list</span>;</span><br></code></pre></td></tr></table></figure>
+
+<p>​	list 结构为链表提供了表头指针 head、表尾指针 tai，以及链表长度计数器 len, 而 dup、free 和 match 成员则是用于实现多态链表所需的类型特定函数:</p>
+<ul>
+<li>dup函数用于复制链表节点所保存的值</li>
+<li>free函数用于释放链表节点所保存的值</li>
+<li>match 函数则用于对比链表节点所保存的值和另一个输人值是否相等</li>
+</ul>
+<img src="/2023/09/21/blog-post2/image-20230212221946379.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>Redis 的链表实现的特性可以总结如下</p>
+<ul>
+<li>双端:链表节点带有 prev 和 next 指针，获取某个节点的前置节点和后置节点的复杂度都是 0(1)</li>
+<li>无环:表头节点的prev 指针和表尾节点的next 指针都向NULL，对链表的访0问以NULL 为终点</li>
+<li>带表头指针和表尾指针:通过 list 结构的  head  指针和  tail  指针，程序获取链表的表头节点和表尾节点的复杂度为 O(1)</li>
+<li>带链表长度计数器:序使用list 结的 len属来对1st 持有的链表节点进行计数，程序获取链表中节点数量的复杂度为 O(1)</li>
+<li>多态:链表节点使用void* 指针来保存节点值，并且可以通过 list 结构的 dupfree、match 三个属性为节点值设置类型特定函数，所以链表可以用于保存各种不同类型的值</li>
+</ul>
+<h2 id="3-2-链表和链表节点的API"><a href="#3-2-链表和链表节点的API" class="headerlink" title="3.2 链表和链表节点的API"></a>3.2 链表和链表节点的API</h2><img src="/2023/09/21/blog-post2/image-20230212222245393.png" srcset="/img/loading.gif" lazyload class="">
+
+<img src="/2023/09/21/blog-post2/image-202302122223082202.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h2 id="3-3-重点回顾"><a href="#3-3-重点回顾" class="headerlink" title="3.3 重点回顾"></a>3.3 重点回顾</h2><ul>
+<li>链表被广泛用于实现 Redis 的各种功能，比如列表键、发布与订阅、慢查询、监视器等</li>
+<li>每个链表节点由一个listNode 结构来表示，每个节点都有一个指向前置节点和后置节点的指针，所以 Redis 的链表实现是双端链表。</li>
+<li>每个链表使用一个 list 结构来表示，这个结构带有表头节点指针、表尾节点指针以及链表长度等信息</li>
+<li>因为链表表头节点的前置节点和表尾节点的后置节点都指向 NULL，所以 Redis 的链表实现是无环链表</li>
+<li>通过为链表设置不同的类型特定函数，Redis 的链表可以用于保存各种不同类型的值</li>
+</ul>
+<h1 id="第4章-字典"><a href="#第4章-字典" class="headerlink" title="第4章 字典"></a>第4章 字典</h1><p>​	字典，又称为符号表(symbol table)关联数组(associative array)或映射(map)，是一种用于保存键值对(key-value pair)的抽象数据结构。在字典中，一个键 (key)可以一个值 (value) 进行关联(说将键为值)这些关联的键和值就称为键值对。</p>
+<p>​	字典中的每个键都是独一无二的，程序可以在字典中根据键查找与之关联的值，或者通过键来更新值，又或者根据键来删除整个键值对，等等。</p>
+<p>​	字典经常作为一种数据结构内置在很多高级编语言里面， Redis 所使用的C语言并没有内置这种数据结构，因此 Redis 构建了自己的字典实现。</p>
+<p>​	字典在 Redis 中的应用相当广泛，比如 Redis 的数据就是使用字典来作为底层实现的对数据库的增、删、查、改操作也是构建在对字典的操作之上的。</p>
+<p>举个例子，当我们执行命令:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">redis&gt; </span><span class="language-bash">SET msg <span class="hljs-string">&quot;hello world&quot;</span></span><br>OK<br></code></pre></td></tr></table></figure>
+
+<p>​	在数据库中创建一个键为“msg”，值为“hello world”的键值对时，这个键值对就是保存在代表数据库的字典里面的。</p>
+<p>​	除了用来表示数据库之外，字典还是哈希键的底层实现之一，当一个哈希键包含的键值对比较多，又或者键值对中的元素都是比较长的字符串时，Redis 就会使用字典作为哈希键的底层实现。</p>
+<h2 id="4-1-字典的实现（重点重点）"><a href="#4-1-字典的实现（重点重点）" class="headerlink" title="4.1 字典的实现（重点重点）"></a><strong>4.1 字典的实现（重点重点）</strong></h2><p>​	<strong>4.1全是重点</strong></p>
+<p>​	Redis 的字典使用哈希表作为底层实现，一个哈希表里面可以有多个哈希表节点，而每个哈希表节点就保存了字典中的一个键值对。</p>
+<h3 id="4-1-1-哈希表（重点重点）"><a href="#4-1-1-哈希表（重点重点）" class="headerlink" title="4.1.1 哈希表（重点重点）"></a>4.1.1 哈希表（重点重点）</h3><p>​	Redis 字典所使用的哈希表由 dict.h&#x2F;dictht 结构定义:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictht</span> &#123;</span><br>	<span class="hljs-comment">// 哈希表数组, 这是一个二维数组</span><br>    dictEntry **table;<br>	<span class="hljs-comment">// 哈希表大小</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size;<br>	<span class="hljs-comment">// 哈希表大小掩码，用于计算索引值</span><br>    <span class="hljs-comment">//总是等于size-1</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> 	sizemask;<br>	<span class="hljs-comment">// 该哈希表已有节点的数量</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> used;<br>) dictht;<br></code></pre></td></tr></table></figure>
+
+<p>​	<code>table</code> 属性是一个数组，数组中的每个元素都是一个指向 dict.h&#x2F;dictEntry 结构的指针，每个 <code>dictEntry</code> 结构保存着一个键值对。size 属性记录了哈希表的大小，也即是 table 数组的大小，而 used 属性则记录了哈希表目前已有节点(键值对)的数量。sizemask 属性的值总是等于 <code>size-1</code>，这个属性和哈希值一起决定一个键应该被放到 table 数组的哪个索引上面。图 4-1 展示了一个大小为4的空哈希表没有包含任何键值对)</p>
+<img src="/2023/09/21/blog-post2/image-20230213221641425.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="4-1-2-哈希表节点"><a href="#4-1-2-哈希表节点" class="headerlink" title="4.1.2 哈希表节点"></a>4.1.2 哈希表节点</h3><p>​	哈希表节点使用 dictEntry 结构表示，<strong>每个 dictEntry 结构都保存着一个键值对</strong>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictEntry</span> &#123;</span><br>    <span class="hljs-comment">// 键,   void * 是可以指向任意类型的指针</span><br>    <span class="hljs-type">void</span> *key;<br>    <span class="hljs-comment">// 值</span><br>    <span class="hljs-class"><span class="hljs-keyword">union</span> &#123;</span><br>        <span class="hljs-type">void</span> *val;<br>        uint64_tu64;<br>        int64_ts64;<br>    &#125; v;    <span class="hljs-comment">//  v 只存 三种数据中对的一种</span><br>	<span class="hljs-comment">// 指向下个哈希表节点，形成链表</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictEntry</span> *<span class="hljs-title">next</span>;</span><br>&#125; dictEntry;<br><br><span class="hljs-comment">// 联合（union）是一种数据类型，它能在同一个内存空间中储存不同的</span><br><span class="hljs-comment">// 数据类型（不是同时储存）。其典型的用法是，设计一种表以储存既无规</span><br><span class="hljs-comment">// 律、事先也不知道顺序的混合类型。使用联合类型的数组，其中的联合都大</span><br><span class="hljs-comment">// 小相等，每个联合可以储存各种数据类型。</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>key属性保存着键值对中的键，而v 属性则保存着键值对中的值，其中键值对的值可以是一个指针，或者是一个 uint64_t 整数，又或者是一个 uint64_t 整数。next 属性是指向另一个哈希表节点的指针，这个指针可以将多个哈希值相同的键值对连接在一起，以此来解决键冲突(collision)的问题。举个例子，图4-2就展示了如何通过 next 指针，将两个索引值相同的键 k1和k0连接在一起。</strong></p>
+<p>注：  k1 和 k0 这两个计算出了相同 hash值，相同的key放到同一个 hash 哈希表节点</p>
+<img src="/2023/09/21/blog-post2/image-20230213223411514.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="4-1-3-字典"><a href="#4-1-3-字典" class="headerlink" title="4.1.3 字典"></a>4.1.3 字典</h3><p>​	Redis 中的字典由 dict.h&#x2F;dict 结构表示</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dict</span>&#123;</span><br>    <span class="hljs-comment">// 类型特定函数</span><br>	dictType *type;<br>    <br>	<span class="hljs-comment">// 私有数据</span><br>	<span class="hljs-type">void</span> *privdata;<br>    <br>	<span class="hljs-comment">// 哈希表</span><br>	dictht ht[<span class="hljs-number">2</span>];<br>              <br>	<span class="hljs-comment">// rehash 索引</span><br>	<span class="hljs-comment">//当 rehash 不在进行时，值为 -1</span><br>	in trehashidx; <span class="hljs-comment">/*rehashing not in progress if rehashidx == -1 */</span><br>&#125; dict;<br></code></pre></td></tr></table></figure>
+
+<p><strong>type 属性和 privdata 属性是针对不同类型的键值对，为创建多态字典而设置的:</strong></p>
+<ul>
+<li>type 属性是一个指向 dictType 结构的指针，每个 dictType 结构保存了一簇用于操作特定类型键值对的函数，Redis 会为用途不同的字典设置不同的类型特定函数</li>
+<li>而 privdata 属性则保存了需要传给那些类型特定函数的可选参数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">dictType</span> &#123;</span><br>    <span class="hljs-comment">// 计算哈希值的函数</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-title function_">int</span> <span class="hljs-params">(*hashFunction)</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">void</span> *key)</span>;<br>    <span class="hljs-comment">// 复制键的函数</span><br>    <span class="hljs-type">void</span> *(*keyDup)(<span class="hljs-type">void</span> *privdata, <span class="hljs-type">const</span> <span class="hljs-type">void</span> *key);<br>    <span class="hljs-comment">//复制值的函数</span><br>    <span class="hljs-type">void</span> *(*valDup)(<span class="hljs-type">void</span> *privdata， <span class="hljs-type">const</span> <span class="hljs-type">void</span> *obj);<br>    <span class="hljs-comment">// 对比键的函数</span><br>    <span class="hljs-type">int</span> (*keyCompare)(<span class="hljs-type">void</span> *privdata, <span class="hljs-type">const</span> <span class="hljs-type">void</span> *keyl, <span class="hljs-type">const</span> <span class="hljs-type">void</span> *key2);<br>    <span class="hljs-comment">// 销毁键的函数</span><br>    <span class="hljs-type">void</span> (*keyDestructor)(<span class="hljs-type">void</span> *privdata, <span class="hljs-type">void</span> *key);<br>    <span class="hljs-comment">// 销毁值的函数</span><br>    <span class="hljs-type">void</span> (*valDestructor)(<span class="hljs-type">void</span> .privdata, <span class="hljs-type">void</span> *obj);<br>&#125; dictType;<br></code></pre></td></tr></table></figure>
+
+<p>​	<strong>ht 属性是一个包含两个项的数组，数组中的每个项都是一个 dictht 哈希表，一般情况字典只使用 ht[O] 哈希表，ht[1] 哈希表只会在对 ht[0] 哈希表进行 rehash 时使用下。</strong></p>
+<p>​	除了ht[1]之外，另一个和 rehash有关的属性就是 rehashidx，它记录了rehash 目前的进度，如果目前没有在进行 rehash，那么它的值为 -1。</p>
+<p>图 4-3 展示了一个普通状态下(没有进行 rehash)的字典</p>
+<img src="/2023/09/21/blog-post2/image-20230213225016435.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h2 id="4-2-哈希算法"><a href="#4-2-哈希算法" class="headerlink" title="4.2 哈希算法"></a>4.2 哈希算法</h2><p>​	当要将一个新的键值对添加到字典里面时，程序需要先根据键值对的键计算出哈希值和索引值，然后再根据索引值，将包含新键值对的哈希表节点放到哈希表数组的指定索引上面。</p>
+<p>Redis 计算哈希值和索引值的方法如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"># 使用字典设置的哈希函数，计算键 key 的哈希值<br>hash = dict-&gt;type-&gt;hashFunction(key);<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c"># 使用哈希表的 sizemask 属性和哈希值，计算出索引值<br># 根据情况不同，ht[x] 可以是 ht[<span class="hljs-number">0</span>] 或者 ht[<span class="hljs-number">1</span>]<br>index = hash &amp; dict-&gt;ht[x].sizemask;<br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/21/blog-post2/image-20230214210606289.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>举个例子，对于图 4-4 所示的字典来说，如果我们要将一个键值对 k0 和 v0 添加到字典里面，那么程序会先使用语句:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">hash = dict-&gt;type-&gt;hashFunction(k0);<br></code></pre></td></tr></table></figure>
+
+<p>计算键 k0的哈希值, 假设计算得出的哈希值为 8，那么程序会继续使用语句:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">index = hash &amp; dict-&gt;ht[<span class="hljs-number">0</span>].sizemask = <span class="hljs-number">8</span> &amp; <span class="hljs-number">3</span> = <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure>
+
+<p>计算出键 k0 的索引值 0，<strong>这表示含键值对 k0 和 v0 的节点应该被放置到哈表数组的索引0位置上</strong>，如图4-5 所示。</p>
+<img src="/2023/09/21/blog-post2/image-20230214214308217.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​	当字典被用作数据库的底层实现，或者哈希键的底层实现时，Redis使用MurmurHash2算法来计算键的哈希值。<br>MurmurHash算法最初由 Austin Appleby 于2008年发明，这种算法的优点在于，即使输人的键是有规律的，算法仍能给出一个很好的随机分布性，并且算法的计算速度也非常快。MurmurHash算法目前的最新版本为MurmurHash3，而Redis使用的是 MurmurHash2，关于MurmurHash算法的更多信息可以参考该算法的主页:<a target="_blank" rel="noopener" href="http://odegooglecom/p/smhasher/%E3%80%82">http://odegooglecom/p/smhasher/。</a></p>
+<h2 id="4-3-解决键冲突"><a href="#4-3-解决键冲突" class="headerlink" title="4.3 解决键冲突"></a>4.3 解决键冲突</h2><p>​	<strong>当有两个或以上数量的键被分配到了哈希表数组的同一个索引上面时，我们称这些键发生了冲突(collision)。</strong></p>
+<p>​	<strong>Redis 的哈希表使用链地址法(separate chaining)来解决键冲突，每个哈希表节点都有一个next 指针，多个哈希表节点可以用next 指针构成一个单向链表，被分配到同一个索引上的多个节点可以用这个单向链表连接起来</strong>，这就解决了键冲突的问题。</p>
+<p>​	举个例子，假设程序要将键值对 k2 和 v2 添加到图4-6所的哈希表里面，并且计算得出 k2 的索引值为2，那么键k1和 k2将产生冲突，而解决冲突的办法就是使用next 指针将键 k2 和 k1 所在的节点连接起来，如图4-7所示。因为 dictEntry 节点组成的链表没有指向链表表尾的指针，所以为了速度考虑，序总是将新节点添加到链表的表头位置在其他有节点的前面。</p>
+<p>​	 <img src="/2023/09/21/blog-post2/image-20230214215010096.png" srcset="/img/loading.gif" lazyload class=""></p>
+<h2 id="4-4-rehash"><a href="#4-4-rehash" class="headerlink" title="4.4 rehash"></a>4.4 <strong>rehash</strong></h2><p>​	<strong>随着操作的不断执行，哈希表保存的键值对会逐渐地增多或者减少，为了让哈希表的负载因子(load factor)维持在一个合理的范围之内，当哈希表保存的键值对数量太多或者太少时，程序需要对哈希表的大小进行相应的扩展或者收缩。</strong><br>​	扩展和收缩哈希表的工作可以通过执行 rehash (重新散列)作来完成Redis 对字典的哈希表执行 rehash 的步骤如下:</p>
+<ol>
+<li>为字典的 ht[1] 哈表分配空间，这个哈表的间大小取决于要执行的操作，以及 ht[0] 当前包含的键值对数量(也即是 ht[o].used 属性的值): <ol>
+<li>如果执行的是扩展操作，那么ht[1] 的大小为第一个大于等于 ht[0].used*2 的  2的n次方幂;</li>
+<li>如果执行的是收缩操作，那么ht[1] 的大小为第一个大于等于 ht[0].used 的 2的n次方幂</li>
+</ol>
+</li>
+<li>将保存在 ht[0] 中的所有键值对 rehash 到 ht[1]上面:rehash 指的是重新计算键的哈希值和索引值，然后将键值对放置到 ht[1] 哈希表的指定位置上。</li>
+<li>当ht[0]包含的所有键值对都迁移到了 ht[1]之后(ht[0] 变为空表)，释放ht[0]，将ht[11设置为ht[0]，并在 ht[1] 新创建一个空白哈希表，为下一次rehash做准备。</li>
+</ol>
+<h2 id="4-5-渐进式rehash"><a href="#4-5-渐进式rehash" class="headerlink" title="4.5 渐进式rehash"></a>4.5 渐进式rehash</h2><p>​	<strong>上一节说过，扩展或收缩哈希表需要将 ht[0]里面的所有键值对 rehash 到 ht[1]里面，但是，这个rehash 动作并不是一次性、集中式地完成的，而是分多次、渐进式地完成的。</strong></p>
+<p>​	这样做的原因在于，如果 ht[0] 里只保存着四个键值对，那么服务器可以在瞬间就将这些键值对全部 rehash 到 ht[1]; 但是，如果哈希表里保存的键值对数量不是四个，而是四百万、四千万甚至四亿个键值对，那么要一次性将这些键值对全部rehash到 ht[1] 的话庞大的计算量可能会导致服务器在一段时间内停止服务.</p>
+<p>​	因此，为了避免 rehash 对服务器性能造成影响，服务器不是一次性将 ht[0] 里面的所有键值对全部rehash 到 ht[1]，而是分多次、渐进式地将 ht[0]里面的键值对慢慢地 rehash到ht[1].</p>
+<p><strong>渐进式rehash执行期间的哈希表操作</strong></p>
+<p>​	因为在进行渐进式rehash 的过程中，字典会同时使用 ht[0] 和ht[1]两个哈希表所以在渐进式rehash 进行期间，字典的删除 (delete)查找 (find)更新(update)等操作会在两个哈希表上进行。例如，要在字典里面查找一个键的话，程序会先在 ht[0] 里面进行查找，如果没找到的话，就会继续到 ht[1] 里面进行查找，诸如此类。另外，在进式rehash 执行期间，新添加到字典的键值对一律会被保存到 ht1]里面而 ht[0] 则不再进行任何添加操作，这一措施保证了 ht[0] 包含的键值对数量会只减不增，并随着 rehash 操作的执行而最终变成空表。</p>
+<h2 id="4-6-字典API"><a href="#4-6-字典API" class="headerlink" title="4.6 字典API"></a>4.6 字典API</h2><img src="/2023/09/21/blog-post2/image-20230214220859974.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h2 id="4-7-重点回顾"><a href="#4-7-重点回顾" class="headerlink" title="4.7 重点回顾"></a>4.7 重点回顾</h2><ul>
+<li><strong>字典被广泛用于实现 Redis 的各种功能，其中包括数据库和哈希键</strong></li>
+<li><strong>Redis中的字典使用哈希表作为底层实现，每个字典带有两个哈希表，一个平时使用，另一个仅在进行 rehash 时使用</strong></li>
+<li><strong>当字典被用作数据库的底层实现，或者哈希键的底层实现时，Redis使用 MurmurHash2 算法来计算键的哈希值</strong></li>
+<li><strong>哈希表使用链地址法来解决键冲突，被分配到同一个索引上的多个键值对会连接成一个单向链表</strong></li>
+<li><strong>在对哈希表进行扩展或者收缩操作时，程序需要将现有哈希表包含的所有键值对 rehash 到新哈希表里面，并且这个 rehash 过程并不是一次性地完成的，而是渐进式地完成的</strong></li>
+</ul>
+<h1 id="第5章-跳跃表"><a href="#第5章-跳跃表" class="headerlink" title="第5章 跳跃表"></a>第5章 跳跃表</h1><p>​	<strong>跳跃表(skiplist)是一种有序数据结构，它通过在每个节点中维持多个指向其他节点的指针，从而达到快速访问节点的目的。</strong><br><strong>跳跃表支持平均 (logN)、最坏 O(N)复杂度的节点查找，还可以通过顺序性操作来批量处理节点</strong></p>
+<p>​	<strong>在大部分情况下，跳跃表的效率可以和平衡树相媲美，并且因为跳跃表的实现比平衡树要来得更为简单，所以有不少程序都使用跳跃表来代替平衡树。Redis 使用跳跃表作为有序集合键的底层实现之一，如果一个有序集合包	含的元素数比较多，又或者有序集合中元素的成员 (member)是比较长的字符串时，Redis 就会使用跳跃表来作为有序集合键的底层实现</strong></p>
+<p>​	举个例子，fruit-price 是一个有序集合键，这个有序集合以水果名为成员，水果价钱为分值，保存了 130 款水果的价钱:</p>
+<img src="/2023/09/21/blog-post2/image-20230214222941399.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​	fruit-price 有序集合的所有数据都保存在一个跳跃表里面，其中每个跳跃表节点(node)都保存了一款水果的价钱信息，所有水果按价钱的高低从低到高在跳跃表面排序</p>
+<ul>
+<li>跳跃表的第一个元素的成员为“banana”，它的分值为 5</li>
+<li>跳跃表的第二个元素的成员为”cherry”，它的分值为 6.5</li>
+<li>跳表的第三个元素的成员为“apple”，它的分值为 8</li>
+</ul>
+<p>和链表、字典等数据结构被广泛地应用在 Redis 内部不同，Redis 只在两个地方用到了跳跃表，一个是实现有序集合键，另一个是在集群节点中用作内部数据结构。除此之外，没有其他用途。</p>
+<p>Redis 的跳跃表由 <code>redis.h/zskiplist  Noderedis.h/zskiplist</code> 两个结构定义，其中 zskiplistNode 结构用于表示跳跃表节点，而zskiplist 结构则用于保存跳跃表节点的相关信息，比如节点的数量，以及指向表头节点和表尾节点的指针等等</p>
+<img src="/2023/09/21/blog-post2/image-20230217222355419.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>图5-1 展示了一个跳跃表示例，位于图片最左边的是 <strong>zskiplist</strong> 结构，该结构含以下属性:</p>
+<ul>
+<li><strong>header</strong>: 指向跳跃表的表头节点。</li>
+<li><strong>tail</strong>: 指向跳跃表的表尾节点。</li>
+<li><strong>level</strong>: 记录目前跳跃表内，层数最大的那个节点的层数(表头节点的层数不计算在内)。</li>
+<li><strong>length</strong>: 记录跳跃表的长度，也即是，跳跃表目前包含节点的数量(表头节点不计算在内)。</li>
+</ul>
+<p>位于 <strong>zskiplist</strong>  结构右方的是四个 <strong>zskiplistNode</strong> 结构，该结构包含以下属性:</p>
+<p><strong>层(level)</strong>:  节点中用L1、L2、L3 等字样标记节点的各个层，L1代表第一层，L2代表第二层，以此类推。<strong>每个层都带有两个属性:前进指针和跨度</strong>。前进指针用于访问位于表尾方向的其他节点，而跨度则记录了前进指针所指向节点和当前节点的距离。在上面的图片中，连线上带有数字的箭头就代表前进指针，而那个数字就是跨度。<strong>当程序从表头向表尾进行遍历时，访问会沿着层的前进指针进行。</strong></p>
+<p><strong>后退 (backward)指针</strong>:  节点中用 BW 字样标记节点的后退指针，它指向位于当前节点的前一个节点。后退指针在程序从表尾向表头遍历时使用。</p>
+<p><strong>分值(score)</strong>: 各个节点中的1.0, 2.0 和 3.0是节点所保存的分值。在跳跃表中节点按各自所保存的分值从小到大排列。<br><strong>成员对象(obi)</strong>: 各个节点中的o1、02和o3 是节点所保存的成员对象。注意表头节点和其他节点的构造是一样的: <strong>表头节点也有后退指针和分值和成员对象</strong>，不过表头节点的这些属性都不会被用到，所以图中省略了这些部分，只显示了表头节点的各个层。</p>
+<h3 id="5-1-1-跳跃表节点"><a href="#5-1-1-跳跃表节点" class="headerlink" title="5.1.1 跳跃表节点"></a>5.1.1 跳跃表节点</h3><p>跳跃表节点的实现由  <code>redis.h/zskiplistNode</code>  结构定义:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zskiplistNode</span> &#123;</span><br>    <span class="hljs-comment">//层</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zskiplistLevel</span> &#123;</span><br>        <span class="hljs-comment">//进指针</span><br>    	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zskiplistNode</span> *<span class="hljs-title">forward</span>;</span><br>    	<span class="hljs-comment">//跨度</span><br>    	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> span;<br>    &#125; level[];<br>    <span class="hljs-comment">//后退指针</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zskiplistNode</span> *<span class="hljs-title">backward</span>;</span><br>    <span class="hljs-comment">//分</span><br>    <span class="hljs-type">double</span> score;<br>    <span class="hljs-comment">// 成员对象</span><br>    robj *obj;<br>&#125; zskiplistNode;<br></code></pre></td></tr></table></figure>
+
+<p><strong>1.层</strong><br>        跳跃表节点的 level 数组可以包含多个元素，每个元素都包含一个指向其他节点的指针，程序可以通过这些层来加快访问其他节点的速度，一般来说，层的数量越多，访问其他节点的速度就越快。</p>
+<p>​		每次创建一个新跳跃表节点的时候，序都根据幂次定律(power law，越大的数出现的概率越小)随机生成一个介于 1和 32 之间的值作为 level 数组的大小，这个大小就是层的“高度”。</p>
+<p>​		图 5-2分别展示了三个高度为 1层、3 层 5 层节点，因为C 语言的数组索引总是从0开始的，所以节点的第一层是 level[0]，而第二层是 level[1]，以此类推</p>
+<p><strong>2.前进指针</strong><br>每个层都有一个指向表尾方向的前进指针( level[i].forward 属性)，用于从表头向表尾方向访问节点。图5-3 用虚表示出了序从表头表尾方，历跳表中所有节点的路径:</p>
+<img src="/2023/09/21/blog-post2/image-20230217225943520.png" srcset="/img/loading.gif" lazyload class="">
+
+<ol>
+<li>迭代程序首先访问跳表的第一个节点(表头)，然后从第四层的前进指针动到表中的第二个节点。</li>
+<li>在第二个节点时，程序沿着第二层的前进指针移动到表中的第三个节点。</li>
+<li>在第三个节点时，程序同样沿着第二层的前进指针移动到表中的第四个节点</li>
+<li>当程序再次沿着第四个节点的前进指针移动时，它碰到一个 NULL，序知道这时已经到达了跳跃表的表尾，于是结束这次遍历</li>
+</ol>
+<p><strong>3.跨度</strong><br>        层的跨度( <code>level[i].span</code> 属性) 用于记录两个节点之间的距离</p>
+<ul>
+<li>两个节点之间的跨度越大，它们相距得就越远。</li>
+<li>指向 NULL的所有前进指针的度都为，因为它们没有连向任何节点</li>
+</ul>
+<p>​		<strong>初看上去，很容易以为跨度和遍历操作有关，但实际上并不是这样，遍历操作只使用前进指针就可以完成了，跨度实际上是用来计算排位(rank)的: 在查某个节点的过程中将沿途访问过的所有层的跨度累计起来，得到的结果就是目标节点在跳跃表中的排位。</strong></p>
+<p>​		举个例子，图 5-4 用虚线标记了在跳跃表中查找分值为 3.0 成员对象为 o3 的节点时沿途经历的层:查找的过程只经过了一个层，并且层的跨度为 3，所以目标节点在跳跃表中的排位为 3。</p>
+<img src="/2023/09/21/blog-post2/image-20230217231049637.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		再举个例子，图 5-5 用线标记了在跳跃表中查找分值为 2.0 成员对象为 o2 的节点时，沿途经历的层:在查找节点的过程中，程序经过了两个跨度为 1的节点，因此可以计算出，目标节点在跳跃表中的排位为 2。</p>
+<img src="/2023/09/21/blog-post2/image-20230217231637360.png" srcset="/img/loading.gif" lazyload class="">
+
+<p><strong>4.后退指针</strong></p>
+<p>​		<strong>节点的后退指针 (backward属性)用于从表尾向表头方向访问节点:跟可以一次跳过多个节点的前进指针不同，因为每个节点只有一个后退指针，所以每次只能后退至前一个节点</strong>。</p>
+<p>​		图 5-6 用虚线展示了如果从表尾向表头遍历跳跃表中的所有节点序首先通过跳表的 tail 指针访问表尾节点，然后通过后退指针访问倒数第二个节点，之后再沿着后退指针访问倒数第三个节点，再之后遇到指向 NULL 的后退指针，于是访问结束。</p>
+<img src="/2023/09/21/blog-post2/image-20230217233111478.png" srcset="/img/loading.gif" lazyload class="">
+
+<p><strong>5.分值和成员</strong></p>
+<p>​		<strong>节点的分值(score 属性)是一个 double类型的浮点数，跳跃表中的所有节点都按分值从小到大来排序。</strong></p>
+<p>​		<strong>节点的成员对象(ob 属性)是一个指针，它指向一个字符对象，而字符串对象则保存着一个SDS值。【为什么是一个字符串】</strong></p>
+<p>​		<strong>在同一个跳跃表中，各个节点保存的成员对象必须是唯一的，但是多个节点保存的分值却可以是相同的:分值相同的节点将按照成员对象在字典序中的大小来进行排序，成员对象较小的节点会排在前面(近表头的方向) ，而成员对象较大的节点则会排在后面(靠近表尾的方)。</strong></p>
+<p>​		举个例子，在图 5-7所示的跳跃表中，三个跳跃表节点都保存了相同的分值 10086.0 但保存成员对象 o1 的节点却排在保存成员对象02 和03 的节点之前，而保存成员对象2的节点又排在保存成员对象 o3 的节点之前，由此可见，01、02、03 三个成员对象在字典中的排序为 o1&lt;&#x3D;o2&lt;&#x3D;o3。</p>
+<img src="/2023/09/21/blog-post2/image-20230217233235582.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="5-1-2-跳跃表"><a href="#5-1-2-跳跃表" class="headerlink" title="5.1.2 跳跃表"></a>5.1.2 跳跃表</h3><p>​		仅靠多个跳跃表节点就可以组成一个跳跃表，如图 5-8 所示。<strong>但通过使用一个 zskiplist 结构来持有这些节点，序可以更方便地对整个跳跃表进行处理，比如快速访问跳跃表的表头节点和表尾节点</strong>，或者快速地获取跳跃表节点的数量(也即是跳跃表的长度)等信息，如   图 5-9 所。</p>
+<p><code>zskiplist</code>  结构的定义如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zskiplist</span> &#123;</span><br>    <span class="hljs-comment">// 表头节点和表尾节点</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zskiplistNode</span> *<span class="hljs-title">header</span>, *<span class="hljs-title">tail</span>;</span><br>	<span class="hljs-comment">// 表中节点的数量</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> length;<br>	<span class="hljs-comment">// 表中层数最大的节点的层数</span><br>    <span class="hljs-type">int</span> level;<br>&#125; zskiplist;<br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/21/blog-post2/image-20230217233707203.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>header 和 tail  指针分别指向跳跃表的表头和表尾节点，通过这两个指针，序定位表头节点和表尾节点的复杂度为 O(1)。通过使用length 属性来记录节点的数量，序可以在 0(1)复杂度内返回跳表的长度leve1属性则用于在 0(1)复杂内取跳表中高最的那个节点的层数量，注意表头节点的层高并不计算在内。</p>
+<h2 id="5-2-跳跃表API"><a href="#5-2-跳跃表API" class="headerlink" title="5.2 跳跃表API"></a>5.2 跳跃表API</h2><p>表5-1列出了跳表所有操作API</p>
+<img src="/2023/09/21/blog-post2/image-20230217233915326.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h2 id="5-3-重点回顾"><a href="#5-3-重点回顾" class="headerlink" title="5.3 重点回顾"></a>5.3 重点回顾</h2><ul>
+<li>跳跃表是有序集合的底层实现之一</li>
+<li>Redis的跳跃表实现由 zsiplist 和 zskiplistNode 两个结构组成，其中zskiplist用于保存跳跃表信息(比如表头节点、表尾节点长度)而zskiplstNode 则用于表示跳跃表节点。</li>
+<li>每个跳跃表节点的层高都是1至32之间的随机数。</li>
+<li>在同一个跳跃表中，多个节点可以包含相同的分值，但每个节点的成员对象必须是唯一的。</li>
+<li>跳跃表中的节点按照分值大小进行排序，当分值相同时，节点按照成员对象的大小进行排序。</li>
+</ul>
+<p>参考： <a target="_blank" rel="noopener" href="https://www.cnblogs.com/Laymen/p/14084664.html">https://www.cnblogs.com/Laymen/p/14084664.html</a></p>
+<h1 id="第6章-整数集合"><a href="#第6章-整数集合" class="headerlink" title="第6章 整数集合"></a>第6章 整数集合</h1><p>​		整数集合 (intset)是集合键的底层实现之一，当一个集合只包含整数值元素，并且这个集合的元素数量不多时，Redis 就会使用整数集合作为集合键的底层实现。</p>
+<p>​		举个例子，如果我们创建一个只包含五个元素的集合键，并且集合中的所有元素都是整数值，那么这个集合键的底层实现就会是整数集合:</p>
+<img src="/2023/09/21/blog-post2/image-20230222213602549.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h2 id="6-1-整数集合的实现"><a href="#6-1-整数集合的实现" class="headerlink" title="6.1 整数集合的实现"></a>6.1 整数集合的实现</h2><p>​		整数集合 (intset)是 Redis 用于保存整数值的集合抽象数据结构，它可以保存类型为  int16_t、int32_t  或者  int64_t 的整数值，并且保证集合中不会出现重复元素。</p>
+<p>​		每个 intset.h&#x2F;intset  结构表示一个整数集合</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">intset</span> &#123;</span><br>	<span class="hljs-comment">//编码方式</span><br>	uint32 t encoding;	<span class="hljs-comment">// 集合包舍的元素数量</span><br>    uint32 t length;<span class="hljs-comment">// 保存元素的数组</span><br>    int8 t contents[];<br>&#125; intset;<br></code></pre></td></tr></table></figure>
+
+<p>​		contents 数组是整数集合的底层实现:整数集合的每个元素都是 contents 数组的个数组项(item)各个项在数中值的大小从小到大有排列，并且数组中不包含任何重复项。</p>
+<p>​		length 属性记录了整数集合包含的元素数量，也即是 contents 数组的长度。虽然intset 结构将contents 属性声明为int8 t类型的数组，但实际上contents数组并不保存任何 int8 t类型的值，contents 数组的真正类型取决于encoding 属性的值:</p>
+<img src="/2023/09/21/blog-post2/image-20230222215827056.png" srcset="/img/loading.gif" lazyload class="">
+
+<img src="/2023/09/21/blog-post2/image-20230222215854744.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		虽然contents数组保存的四个整数值中，只有-2675 256 175 807981027是真正需要用int64 t类型来保存的，而其他的 1、3、5三个值都可以用int16t类型来保存，不过根据整数集合的升级规则，当向一个底层为 int16 t数组的整数集合添加一个 int64 t类型的整数值时，整数集合已有的所有元素都会被转换成 int64  类型，所以contents 数组保存的四个整数值都是int64 t类型的，不仅仅是-2675256175 807981027。</p>
+<h2 id="6-6-重点回顾"><a href="#6-6-重点回顾" class="headerlink" title="6.6 重点回顾"></a>6.6 重点回顾</h2><ul>
+<li>整数集合是集合键的底层实现之一。</li>
+<li>整数集合的底层实现为数组，这个数组以有序、无重复的方式保存集合元素，在有需要时，程序会根据新添加元素的类型，改变这个数组的类型。</li>
+<li>升级操作为整数集合带来了操作上的灵活性，并且尽可能地节约了内存。</li>
+<li>整数集合只支持升级操作，不支持降级操作。</li>
+</ul>
+<h1 id="第7章-压缩列表"><a href="#第7章-压缩列表" class="headerlink" title="第7章 压缩列表"></a>第7章 压缩列表</h1><p>​		压缩列表(ziplist)是列表键和哈希键的底层实现之一。当一个列表键只包含少量列表项，并且每个列表项要么就是小整数值，要么就是长度比较短的字符串，那么 Redis 就会使用压缩列表来做列表键的底层实现。<br>​		例如，执行以下命令将创建一个压缩列表实现的列表键</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs sh">redis&gt; RPUSH lst 1 3 5 10086 <span class="hljs-string">&quot;hello&quot;</span> <span class="hljs-string">&quot;world&quot;</span><br>(<span class="hljs-built_in">integer</span>)6<br>redis&gt; OBJECT ENCODING lst<br>ziplist<br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/21/blog-post2/image-20230222223058368.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		列表键里面包含的都是 1、3、5、10086 这样的小整数值，以及”hello”、”world” 这样的短字符串。</p>
+<p>​		另外，当一个哈希键只包含少量键值对，比且每个键值对的键和值要么就是小整数值要么就是长度比较短的字符串，那么 Redis 就会使用压缩列表来做哈希键的底层实现。</p>
+<p>​		举个例子，执行以下命令将创建一个压缩列表实现的哈希键:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs sh">redis&gt; HMSET profile <span class="hljs-string">&quot;name&quot;</span> <span class="hljs-string">&quot;Jack&quot;</span> <span class="hljs-string">&quot;age&quot;</span> 28 <span class="hljs-string">&quot;job&quot;</span> <span class="hljs-string">&quot;programmer&quot;</span><br>OK<br>redis&gt; OBJECT ENCODING profile<br>ziplist<br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/21/blog-post2/image-20230222224607586.png" srcset="/img/loading.gif" lazyload class="">
+
+<h2 id="7-1-压缩列表的构成"><a href="#7-1-压缩列表的构成" class="headerlink" title="7.1 压缩列表的构成"></a>7.1 压缩列表的构成</h2><p>​		压缩列表是 Redis 为了节约内存而开发的，是由一系列特殊编码的连续内存块组成的顺序型(sequential)数据结构。一个压缩列表可以包含任意多个节点 (entry)，每个节点可以保存一个字节数组或者一个整数值。<br>​		图7-1 展示了压缩列表的各个组成部分，表7-1 则记录了各个组成部分的类型、长度以及用途。</p>
+<img src="/2023/09/21/blog-post2/image-20230222225225835.png" srcset="/img/loading.gif" lazyload class="">
+
+<h2 id="7-2-压缩列表节点的构成"><a href="#7-2-压缩列表节点的构成" class="headerlink" title="7.2 压缩列表节点的构成"></a>7.2 压缩列表节点的构成</h2><p>​		每个压缩列表节点可以保存一个字节数组或者一个整数值，其中，字节数组可以是以下三种长度的其中一种:</p>
+<ul>
+<li>长度小于等于63(2-1)字节的字节数组</li>
+<li>长度小于等于16383(214-1)字节的字节数组</li>
+<li>长度小于等于4294967295(22-1)字节的字节数组</li>
+</ul>
+<p>​		而整数值则可以是以下六种</p>
+<ul>
+<li>长度的其中一种4 位长，介于0至12 之间的无符号整数</li>
+<li>1字节长的有符号整数</li>
+<li>3字节长的有符号整数</li>
+<li>int16_t类型整数</li>
+<li>int32_t类型整数</li>
+<li>int64_t类型整数</li>
+</ul>
+<p>​		每个压缩列表节点都由previous entry length、encoding、content 三个部分组成，如图7-4所示。<br>​		接下来的内容将分别介绍这三个组成部分。</p>
+<h2 id="7-5-重点回顾"><a href="#7-5-重点回顾" class="headerlink" title="7.5 重点回顾"></a>7.5 重点回顾</h2><ul>
+<li><strong>压缩列表是一种为节约内存而开发的顺序型数据结构</strong></li>
+<li><strong>压缩列表被用作列表键和哈希键的底层实现之一</strong></li>
+<li><strong>压缩列表可以包含多个节点，每个节点可以保存一个字节数组或者整数值</strong></li>
+<li><strong>添加新节点到压缩列表，或者从压缩列表中删除节点，可能会引发连锁更新操作但这种操作出现的几率并不高</strong></li>
+</ul>
+<h1 id="第8章-对象（重点）"><a href="#第8章-对象（重点）" class="headerlink" title="第8章 对象（重点）"></a>第8章 对象（重点）</h1><p>​		在前面的数个章节里，我们陆续介绍了 Redis 用到的所有主要数据结构，比如简单动态字符串(SDS)、双端链表、字典、缩列表、整数集合等等。</p>
+<p>​		<strong>Redis并没有直接使用这些数据结构来实现键值对数据库，而是基于这些数据结构创建了一个对象系统，这个系统包含字符串对象、列表对象、哈希对象、集合对象和有序集合对象这五种类型的对象，每种对象都用到了至少一种我们前面所介绍的数据结构。</strong></p>
+<p>​		<strong>通过这五种不同类型的对象，Redis 可以在执行命令之前，根据对象的类型来判断一个对象是否可以执行给定的命令。</strong>使用对象的另一个好处是，我们可以针对不同的使用场景为对象设置多种不同的数据结构实现，从而优化对象在不同场景下的使用效率。</p>
+<p>​		除此之外，<strong>Redis 的对象系统还实现了基于引用计数技术的内存回收机制</strong>，当<strong>程序不再使用</strong>某个对象的时候，这个对象所占用的内存就会被自动释放;另外，<strong>Redis 还通过引用计数技术实现了对象共享机制</strong>，这一机制可以在适当的条件下，通过让多个数据库键共享同个对象来节约内存。<br>​		最后，<strong>Redis 的对象带有访问时间记录信息，该信息可以用于计算数据库键的空转时长</strong>，在服务器启用了 maxmemory 功能的情况下，<strong>空转时长较大的那些键可能会优先被服务器删除</strong>。</p>
+<h2 id="8-1-对象的类型与编码"><a href="#8-1-对象的类型与编码" class="headerlink" title="8.1  对象的类型与编码"></a>8.1  对象的类型与编码</h2><p>​		Redis 使用对象来表示数据库中的键和值，**每次当我们在 Redis 的数据中新建一个键值对时，我们至少会创建两个对象，一个对象用作键值对的键(键对象） 另一个对象用作键值对的值(值对象)**。</p>
+<p>​		举个例子，以下SET命令在数据库中创建了一个新的键值对，其中键值对的键是一个包含了字符串值 “ms” 的对象，而键值对的值则是一个包含了字符值 “helloworld” 的对象:</p>
+<p>​		Redis中的每个对象都由一个 redisobject 结构表示，该结构中和保存数据有关的三个属性分别是 type 属性、encoding 属性和 ptr 属性:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisObject</span> &#123;</span><br>	<span class="hljs-comment">//类型</span><br>    <span class="hljs-type">unsigned</span> type:<span class="hljs-number">4</span>;<br>	<span class="hljs-comment">//编码</span><br>	<span class="hljs-type">unsigned</span> encoding:<span class="hljs-number">4</span>;<br>    <span class="hljs-comment">//指向底层实现数据结构的指针</span><br>    <span class="hljs-type">void</span> *ptr;<br>    <span class="hljs-comment">//</span><br>    ...<br>&#125; robj;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="8-1-1-类型"><a href="#8-1-1-类型" class="headerlink" title="8.1.1 类型"></a>8.1.1 类型</h3><p>​		对象的 type 属性记录了对象的类型，这个属性的值可以是表8-1 列出的常量的其中一个</p>
+<img src="/2023/09/21/blog-post2/image-20230222232145895.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		对于 Redis 数据库保存的键值对来说，<strong>键总是一个字符串对象</strong>，而<strong>值则可以是字符串对象、列表对象、哈希对象、集合对象或者有序集合对象的其中一种</strong>，因此:</p>
+<ul>
+<li>当我们称呼一个数据库键为 “字符串键” 时我们指的是 “这个数据库键所对应的值为字符串对象”</li>
+<li>当我们称呼一个键为 “列表键” 时，我们指的是 “这个数据键所对应的值为列表对”</li>
+</ul>
+<p>​		<strong>TYPE</strong>  命令的实现方式也与此类似，当我们对一个数据库键执行 TYPE命令时，命令返回的结果为数据库键对应的值对象的类型，而不是键对象的类型:</p>
+<img src="/2023/09/21/blog-post2/image-20230222232454683.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h3 id="8-1-2-编码和底层实现"><a href="#8-1-2-编码和底层实现" class="headerlink" title="8.1.2 编码和底层实现"></a>8.1.2 编码和底层实现</h3><p>​		对象的ptr 指针指向对象的底层实现数据结构，而这些数据结构由对象的encoding属性决定。</p>
+<p>​		encoding 属性记录了对象所使用的编码，也即是说这个对象使用了什么数据结构作为对象的底层实现，这个属性的值可以是表 8-3 列出的常量的其中一个。</p>
+<img src="/2023/09/21/blog-post2/image-20230223212453344.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		<strong>每种类型的对象都至少使用了两种不同的编码，表8-4列出了每种类型的对象可以使用的编码。</strong></p>
+<img src="/2023/09/21/blog-post2/image-20230223213413003.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		使用 OBJECT  ENCODING 命令可以查看一个数据库键的值对象的编码</p>
+<img src="/2023/09/21/blog-post2/image-20230223213917408.png" srcset="/img/loading.gif" lazyload class="">
+
+<img src="/2023/09/21/blog-post2/image-20230223214008230.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		<strong>通过 encoding 属性来设定对象所使用的编码，而不是为特定类型的对象关联一种固定的编码，极大地提升了 Redis 的灵活性和效率</strong>，因为 Redis 可以根据不同的使用场景来为一个对象设置不同的编码，从而优化对象在某一场景下的效率。</p>
+<p>​		举个例子，在列表对象包含的元素比较少时，Redis 使用缩列表作为列表对象的底层实现</p>
+<ul>
+<li>因为<strong>压缩列表比双端链表更节约内存</strong>，并且在<strong>元素数量较少时，在内存中以连续块方式保存的压缩列表比起双端链表可以更快被载入到缓存中</strong>; </li>
+<li>随着<strong>列表对象包含的元素越来越多，使用压缩列表来保存元素的优势逐渐消失时</strong>，对象就会将底层实现从压缩列表转向<strong>功能更强、也更适合保存大量元素的双端链表</strong>上面;</li>
+</ul>
+<p>​		其他类型的对象也会通过使用多种不同的编码来进行类似的优化。在接下来的内容中，我们将分别介绍 <strong>Redis 中的五种不同类型的对象，说明这些对象底层所使用的编码方式</strong>，列出对象从一种编码转换成另一种编码所需的条件，以及同一个命令在多种不同编码上的实现方法。</p>
+<h2 id="8-2-字符串对象"><a href="#8-2-字符串对象" class="headerlink" title="8.2 字符串对象"></a>8.2 字符串对象</h2><p>​		<strong>字符串对象的编码可以是 int、raw 或者 embstr</strong></p>
+<p>​		 如果一个<strong>字符串对象保存的是整数值</strong>，并且这个整数值可以用 long 类型来表示，那么<strong>字符串对象会将整数值保存在字符串对象结构的 ptr 属性里</strong>面(将 void* 转换成 long)并将字符串对象的编码设置为 int。</p>
+<img src="/2023/09/21/blog-post2/image-20230223220605551.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		如果字符串对象保存的是一个<strong>字符串值，并且这个字符串值的长度大于 32 字节，那么字符串对象将使用一个简单动态字符(SDS)来保存这个符，并将对象的编码设为 raw</strong></p>
+<img src="/2023/09/21/blog-post2/image-20230223220708962.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		如果字符串对象保存的是一个<strong>字符串值，并且这个字符串值的长度小于等于 32 字节那么字符串对象将使用embstr 编码的方式来保存这个字符串值</strong>。embstr 编码是专门用于保存短字符的一种优化编码方式，这种编码 raw 编一样，都使用 redisobject 结构和 sdshdr 结构来表示字符申对象，但raw编码会调用两次内存分配函数来分别创建redisobject 结构和 sdshdr 结构，而embstr 编码则通过调用一次内存分配函数来分配一块连续的空间，空间中依次包含 redisobject 和 sdshdr两个结构，如图 8-3 所示。</p>
+<img src="/2023/09/21/blog-post2/image-20230223221539610.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h3 id="8-2-1-编码的转换"><a href="#8-2-1-编码的转换" class="headerlink" title="8.2.1 编码的转换"></a>8.2.1 编码的转换</h3><p>​		<strong>int 编码的字符串对象和embstr 编码的字符对象在条件满足的情况下，会被转换为 raw 编码的字符对象。</strong></p>
+<p>​		对于 int 编码的字符串对象来说，如果我们向对象执行了一些命令，使得这个对象保存的不再是整数值，而是一个字符串值，那么字符串对象的编码将从 int 为 raw。</p>
+<p>​		在下面的示例中，我们通过APPEND命令，向一个保存整数值的字符串对象追加了个字符串值，因为追加操作只能对字符串值执行，所以程序会先将之前保存的整数值10086转换为字符串值“10086”，然后再执行追加操作，操作的执行结果就是一个raw编码的、保存了字符串值的字符串对象:</p>
+<img src="/2023/09/21/blog-post2/image-20230223221650576.png" srcset="/img/loading.gif" lazyload class="">
+
+
+
+<h3 id="8-2-2-字符串命令的实现"><a href="#8-2-2-字符串命令的实现" class="headerlink" title="8.2.2  字符串命令的实现"></a>8.2.2  字符串命令的实现</h3><p>​		因为字符串键的值为字符串对象，所以用于字符串键的所有命令都是针对字符串对象来构建的，表8-7 列举了其中一部分字符命令，以及这些命在不同编码的字符对象下的实现方法。</p>
+<h2 id="8-11-重点回顾"><a href="#8-11-重点回顾" class="headerlink" title="8.11 重点回顾"></a>8.11 重点回顾</h2><ul>
+<li>Redis 数据库中的每个键值对的键和值都是一个对象</li>
+<li>Redis 共有字符、列表、哈、合、有合五种类型的对象，每种型的对象至少都有两种或以上的编码方式，不同的编码可以在不同的使用场景上优化对象的使用效率</li>
+<li>服务器在执行某些命令之前，会先检查给定键的类型能否执行指定的命令，而检查一个键的类型就是检查键的值对象的类型</li>
+<li>Redis 的对象系统带有引用计数实现的内存回收机制，当一个对象不再被使用时，该对象所占用的内存就会被自动释放</li>
+<li>Redis 会共享值为0到 9999 的字符串对象</li>
+<li>对象会记录自己的最后一次被访问的时间，这个时间可以用于计算对象的空转时间</li>
+</ul>
+<h1 id="第9章-数据库-重点、重点"><a href="#第9章-数据库-重点、重点" class="headerlink" title="第9章 数据库(重点、重点)"></a>第9章 数据库(重点、重点)</h1><p>​		本章将对 Redis 服务器的数据库实现进行详细介绍，说明服务器保存数据库的方法，客户端切换数据库的方法，数据库保存键值对的方法，以及针对数据库的添加、删除、查看更新操作的实现方法等。除此之外，本章还会说明服务器保存键的过期时间的方法，以及服务器自动删除过期键的方法。最后，本章还会说明 Redis 2.8 新引人的数据通知功能的实。</p>
+<h2 id="9-1-服务器中的数据库"><a href="#9-1-服务器中的数据库" class="headerlink" title="9.1 服务器中的数据库"></a>9.1 服务器中的数据库</h2><p>​		Redis 服务器将所有数据库都保存在服务器状态 redis.h&#x2F;redisServer 结构的db数组中，db 数组的每个项都是一个redis.h&#x2F;redisDb 结构，每个redisDb 结构代表个数据库</p>
+<p>​		dbnum 属性的值由服务器配置的 database 选项决定，默认情况下，该选项的值为所以 Redis 服务器默认会创建 16 个数据库，如图 9-1 所示。<img src="/2023/09/21/blog-post2/image-20230226205956889.png" srcset="/img/loading.gif" lazyload class=""></p>
+<h2 id="9-2-切换数据库"><a href="#9-2-切换数据库" class="headerlink" title="9.2 切换数据库"></a>9.2 切换数据库</h2><p>​		每个Redis客户端都有自已的目标数据库，每当客户端执行数据库写命令或者数据库读命令的时候，目标数据库就会成为这些命令的操作对象。</p>
+<p>​		默认情况下，Redis 客户端的目标数据库为0号数据库，但客户端可以通过执行SELECT命今来切换目标数据库。<br>​		以下代码示例演示了客户端在0号数据库设置并读取键 msg，之后切换到2号数据库并执行类似操作的过程:</p>
+<img src="/2023/09/21/blog-post2/image-20230226210323429.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​	redisclient.db 指针指向 redisServer.db 数组的其中一个元素，而被指向的元素就是客户端的目标数据库。<br>​	比如说，如果某个客户端的目标数据库为 1号数据库，那么这个客户端所对应的客户端状态和服务器状态之间的关系如图 9-2 所示。</p>
+<img src="/2023/09/21/blog-post2/image-20230226210924733.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>如果这时客户端执行命令 SELECT 2  将目标数据库改为 2 号数据库，那么客户端状态和服务器状态之间的关系将更新成图 9-3。</p>
+<img src="/2023/09/21/blog-post2/image-20230226210957792.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>通过修改 redisclient.db 指针，让它指向服务器中的不同数据库，从而实现切换目标数据库的功能一这就是 SELECT 命今的实现原理。</p>
+<h2 id="9-3-数据库键空间"><a href="#9-3-数据库键空间" class="headerlink" title="9.3 数据库键空间"></a>9.3 数据库键空间</h2><p>​		<strong>Redis 是一个键值对( key-value pair)数据服务器，服务器中的每个数据库都由个redis.h&#x2F;redisDb 结构表示，其中，redisDb 结构的 dict 字典保存了数据库中的所有键值对，我们将这个字典称为键空间(key space):</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisDb</span> &#123;</span><br>	<span class="hljs-comment">// 数据库键空间，保存着数据库中的所有键值对</span><br>    dict *dict;<br>	<span class="hljs-comment">// ..... </span><br>&#125; redisDb;<br></code></pre></td></tr></table></figure>
+
+<p>键空间和用户所见的数据库是直接对应的:</p>
+<ul>
+<li><strong>键空间的键也就是数据库的键，每个键都是一个字符串对象</strong></li>
+<li><strong>键空间的值也就是数据库的值，每个值可以是字符串对象、列表对象、哈表对象集合对象和有序集合对象中的任意一种 Redis 对象</strong></li>
+</ul>
+<p>举个例子，如果我们在空白的数据库中执行以下命令:</p>
+<img src="/2023/09/21/blog-post2/image-20230226215753114.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>那么在这些命令执行之后，数据库的键空间将会是图 9-4 所展示的样子</p>
+<ul>
+<li><p>alphabet 是一个列表键，键的名字是一个包含字符串”alphabet”的字符串对象，键的值则是一个包含三个元素的列表对象。</p>
+</li>
+<li><p>book 是一个哈希表键，键的名字是一个包含字符串“book”的字符串对象，键的值则是一个包含三个键值对的哈希表对象</p>
+</li>
+<li><p>message是一个字符串键，键的名字是一个包含字符串“message”的字符申对象键的值则是一个包含字符串“hello world”的字符串对象</p>
+</li>
+</ul>
+<img src="/2023/09/21/blog-post2/image-20230226215954763.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>​		<strong>因为数据库的键空间是一个字典，所以所有针对数据库的操作，比如添加一个键值对到数据库，或者从数据库中删除一个键值对，又或者在数据库中获取某个键值对等，实际上都是通过对键空间字典进行操作来实现的</strong>，以下几个小节将分别介绍数据库的添加、删除、更新、取值等操作的实现原理。</p>
+<h3 id="9-3-1-添加新键"><a href="#9-3-1-添加新键" class="headerlink" title="9.3.1 添加新键"></a>9.3.1 添加新键</h3><p>​		<strong>添加一个新键值对到数据库，实际上就是将一个新键值对添加到键空间字典里面，其中键为字符串对象，而值则为任意一种类型的 Redis 对象</strong>。举个例子，如果键空间当前的状态如图 9-4 所示，那么在执行以下命令之后</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sh">redis&gt; SET <span class="hljs-built_in">date</span> <span class="hljs-string">&quot;2013.12.1&quot;</span><br>OK<br></code></pre></td></tr></table></figure>
+
+<h3 id="9-3-2-删除键"><a href="#9-3-2-删除键" class="headerlink" title="9.3.2 删除键"></a>9.3.2 删除键</h3><p>​		删除数据库中的一个键，实际上就是在键空间里面删除键所对应的键值对对象举个例子，如果键空间当前的状态如图 9-4 所示，那么在执行以下命令之后:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sh">redis&gt; DEL book<br>(<span class="hljs-built_in">integer</span>) 1<br></code></pre></td></tr></table></figure>
+
+<h3 id="9-3-3-更新键"><a href="#9-3-3-更新键" class="headerlink" title="9.3.3 更新键"></a>9.3.3 更新键</h3><p>​		对一个数据库键进行更新，实际上就是对键空间里面键所对应的值对象进行更新，根据值对象的类型不同，更新的具体方法也会有所不同。举个例子，如果键空间当前的状态如图 9-4 所示，那么在执行以下命令之后</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sh">redis&gt; SET message <span class="hljs-string">&quot;blah blah&quot;</span><br>OK<br></code></pre></td></tr></table></figure>
+
+<h3 id="9-3-4-对键取值"><a href="#9-3-4-对键取值" class="headerlink" title="9.3.4 对键取值"></a>9.3.4 对键取值</h3><p>​		对一个数据库键进行取值，实际上就是在键空间中取出键所对应的值对象，根据值对象的类型不同，具体的取值方法也会有所不同。举个例子，如果键空间当前的状态如图 9-4 所示，那么当执行以下命令时:<br><code>redis&gt; GET message &quot;hello world&quot;</code><br>GET命令将首先在键空间中查找键 message，找到键之后接着取得该键所对应的字符串对象值，之后再返回值对象所包含的字符串”hello world”，取值过程如图9-9所示。</p>
+<h3 id="9-3-5其他键空间操作"><a href="#9-3-5其他键空间操作" class="headerlink" title="9.3.5其他键空间操作"></a>9.3.5其他键空间操作</h3><p>​		除了上面列出的添加、删除、更新、取值操作之外，还有很多针对数据库本身的 Redis命令，也是通过对<strong>键空间</strong>进行处理来完成的。<br>​		比如说，用于清空整个数据库的 FLUSHDB命令，就是通过删除键空间中的所有键值对来实现的。又比如说，用于随机返回数据库中某个键的 RANDOMKEY命令，就是通过在键空间中随机返回一个键来实现的。<br>​		另外，用于返回数据库键数量的 DBSIZE令，就是通过返回键空间中包含的键值对的数量来实现的。似的命令还有EXISTS、RENAME、KEYS等，这些命都是通过对键空间进行操作来实现的。</p>
+<h3 id="9-3-6-读写键空间时的维护操作"><a href="#9-3-6-读写键空间时的维护操作" class="headerlink" title="9.3.6 读写键空间时的维护操作"></a>9.3.6 读写键空间时的维护操作</h3><p>​		当使用 Redis 命令对数据库进行读写时，服务器不仅会对键空间执行指定的读写操作还会执行一些额外的维护操作，其中包括:</p>
+<ul>
+<li>在读取一个键之后(读操作和写操作都要对键进行读取)，服务器会根据键是否存在0来更新服务器的键空间命中(hit)次数或键空间不命中(iss)次数，这两个值可以在INFOstats 命令的 eyspace hits 属性和 keyspace misses 性中查看。</li>
+<li>在读取一个键之后，服务器会更新键的 LRU(最后一次使用)时间，这个值可以用于计算键的闲置时间，使用 OBJECT idletime <key>  命今可以查看键 key 的闲置时间。</li>
+<li>如果服务器在读取一个键时发现该键已经过期，那么服务器会先删除这个过期键然后才执行余下的其他操作，本章稍后对过期键的讨论会详细说明这一点</li>
+<li>如果有客户端使用 WATCH命令监视了某个键，那么服务器在对被监视的键进行修改之后，会将这个键标记为脏(dirty)，从而让事务序注意到这个键已经被修改过，第 19 章会详细说明这一点。<br>服务器每次修改一个键之后，都会对脏(dirty)键计数器的值增1，这个计数器会触发服务器的持久化以及复制操作，第 10 章第11 章第 15 章都说到这一点。</li>
+<li>如果服务器开启了数据库通知功能，那么在对键进行修改之后，服务器将按配置发送相应的数据库通知，本竟稍后讨论数据库通知功能的实现时会详细说明这一点。</li>
+</ul>
+<h2 id="9-4-设置键的生存时间或过期时间"><a href="#9-4-设置键的生存时间或过期时间" class="headerlink" title="9.4 设置键的生存时间或过期时间"></a>9.4 设置键的生存时间或过期时间</h2><p>​		<strong>通过EXPIRE命令或者 PEXPIRE命令</strong>，客户端可以以秒或者毫秒精度为数据库中的某个键设置生存时间(<strong>Time To Live，TTL</strong>)在经过指定的秒数或者毫秒数之后，服务器就会自动删除生存时间为0的键</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs sh">127.0.0.1:6379&gt; <span class="hljs-built_in">set</span> key value<br>OK<br>127.0.0.1:6379&gt; get key<br><span class="hljs-string">&quot;value&quot;</span><br>127.0.0.1:6379&gt; expire key 3<br>(<span class="hljs-built_in">integer</span>) 1<br>127.0.0.1:6379&gt; get key<br>(nil)<br>127.0.0.1:6379&gt; <br></code></pre></td></tr></table></figure>
+
+<p>​		与 EXPIRE 命令和PEXPIRE命令类似，<strong>客户端可以通过EXPIREAT命令或PEXPIREAT命令</strong>，以秒或者毫秒精度给数据库中的某个键设置过期时间(expire time)。过期时间是一个UNIX 时间截，当键的过期时间来临时，服务器就会自动从数据库中删除这个键:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs sh">127.0.0.1:6379&gt; <span class="hljs-built_in">set</span> key value<br>OK<br>127.0.0.1:6379&gt; get key<br><span class="hljs-string">&quot;value&quot;</span><br>127.0.0.1:6379&gt; time<br>1) <span class="hljs-string">&quot;1677421823&quot;</span><br>2) <span class="hljs-string">&quot;642250&quot;</span><br>127.0.0.1:6379&gt; expireat key 1677421830<br>(<span class="hljs-built_in">integer</span>) 0<br>127.0.0.1:6379&gt; time<br>1) <span class="hljs-string">&quot;1677421833&quot;</span><br>2) <span class="hljs-string">&quot;292209&quot;</span><br>127.0.0.1:6379&gt; get key<br>(nil)<br>127.0.0.1:6379&gt; <br><br></code></pre></td></tr></table></figure>
+
+<p>​		<strong>TTL命令和 PTTL命令接受一个带有生存时间或者过期时间的键，返回这个键的剩余生存时间</strong>，也就是，返回距离这个键被服务器自动删除还有多长时间:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs sh">127.0.0.1:6379&gt; <span class="hljs-built_in">set</span> key value<br>OK<br>127.0.0.1:6379&gt; expire key 1000<br>(<span class="hljs-built_in">integer</span>) 1<br>127.0.0.1:6379&gt; ttl key<br>(<span class="hljs-built_in">integer</span>) 989<br>127.0.0.1:6379&gt; <br></code></pre></td></tr></table></figure>
+
+<h3 id="9-4-1-设置过期时间"><a href="#9-4-1-设置过期时间" class="headerlink" title="9.4.1 设置过期时间"></a>9.4.1 设置过期时间</h3><p>​		Redis 有四个不同的命今可以用于设置键的生存时间(键可以存在多)或过期时间(键什么时候会被删除):</p>
+<ul>
+<li>EXPIRE  <key> <ttl>  命今用于将键 key的生存时间设置为 ttl 秒</li>
+<li>PEXPIRE  <key> <ttl> 命今用于将键 key 的生存时间设置为 ttl 毫秒</li>
+<li>EXPIREAT <key>  <timestamp> 命令用于将键key的过期时间设置为 timestamp</li>
+<li>PEXPIREAT <key>  <timestamp>  命今用于将键key的过期时间设置为 timestamp 所指定的毫秒数时间戳</li>
+</ul>
+<p>​		<strong>虽然有多种不同单位和不同形式的设置命令，但实际上EXPIRE、PEXPIRE、EXPIREAT三个命令都是使用PEXPIREAT命令来实现的</strong>:无论客户端执行的是以上四个命令中的哪一个，经过转换之后，最终的执行效果都和执行 PEXPIREAT命令一样。</p>
+<h3 id="9-4-2-保存过期时间"><a href="#9-4-2-保存过期时间" class="headerlink" title="9.4.2 保存过期时间"></a>9.4.2 保存过期时间</h3><p>​		redisDb 结构的expires 字典保存了数据库中所有键的过期时间，我们称这个字典为过期字典:</p>
+<ul>
+<li>过期字典的键是一个指针，这个指针指向键空间中的某个键对象(也即是某个数据库键)</li>
+<li>过期字典的值是一个 long long 类型的整数，这个整数保存了键所指向的数据库键的过期时间一个毫秒精度的 UNIX 时间戳</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisDb</span> &#123;</span><br>	<span class="hljs-comment">// 过期字典，保存着键的过期时间</span><br>    dict *expires;<br>&#125; redisDb;<br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/21/blog-post2/image-20230226224203390.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>以下是 PEXPIREAT命令的伪代码定义:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">PEXPIREAT</span>(<span class="hljs-params">key, expire time <span class="hljs-keyword">in</span> ms</span>):<br>	<span class="hljs-comment"># 如果给定的键不存在于键空间，那么不能设置过期时间</span><br>    <span class="hljs-keyword">if</span> key <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> redisDb.<span class="hljs-built_in">dict</span>:<br>		<span class="hljs-keyword">return</span> <span class="hljs-number">0</span><br>	<span class="hljs-comment"># 在过期字典中关联键和过期时间</span><br>    redisDb.expires[key] = expire_time_in_ms<br>	<span class="hljs-comment"># 过期时间设置成功</span><br>	<span class="hljs-keyword">return</span> <span class="hljs-number">1</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="9-4-3-移除过期时间"><a href="#9-4-3-移除过期时间" class="headerlink" title="9.4.3 移除过期时间"></a>9.4.3 移除过期时间</h3><p>​		<strong>PERSIST命令可以移除一个键的过期时间</strong></p>
+<h3 id="9-4-4计-算并返回剩余生存时间"><a href="#9-4-4计-算并返回剩余生存时间" class="headerlink" title="9.4.4计 算并返回剩余生存时间"></a>9.4.4计 算并返回剩余生存时间</h3><p>​		TTL 命令以秒为单位返回键的剩余生存时间，而PTTL则以秒为单位返回键的剩余生存时间:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs sh">redis&gt; PEXPIREAT alphabet 1385877600000(<span class="hljs-built_in">integer</span>) 1<br>redis&gt; TTL alphabet(<span class="hljs-built_in">integer</span>) 8549007<br>redis&gt; PTTL alphabet(<span class="hljs-built_in">integer</span>) 8549001011<br></code></pre></td></tr></table></figure>
+
+<h2 id="9-5-过期键删除策略"><a href="#9-5-过期键删除策略" class="headerlink" title="9.5 过期键删除策略"></a>9.5 过期键删除策略</h2><p>​		经过上一节的介绍，我们知道了数据库键的过期时间都保存在过期字典中，又知道了如何根据过期时间去判断一个键是否过期，现在剩下的问题是:如果一个键过期了，那么它什么时候会被删除呢?<br>这个问题有三种可能的答案，它们分别代表了三种不同的删除策略: </p>
+<ul>
+<li>定时删除:在设置键的过期时间的同时，创建一个定时器(timer)，让定时器在键的过期时间来临时，立即执行对键的删除操作</li>
+<li>惰性删除:放任键过期不管，但是每次从键空间中获取键时，都检查取得的键是否过期，如果过期的话，就删除该键;如果没有过期，就返回该键</li>
+<li>定期删除:每隔一段时间，序就对数据库进行一次检查，删除里面的过期键。至于要删除多少过期键，以及要检查多少个数据库，则由算法决定</li>
+</ul>
+<p>在这三种策略中，第一种和第三种为主动删除策略，而第二种则为被动删除策略</p>
+<h3 id="9-5-1-定时删除"><a href="#9-5-1-定时删除" class="headerlink" title="9.5.1 定时删除"></a>9.5.1 定时删除</h3><p>​		<strong>定时删除策略对内存是最友好的:通过使用定时器，定时删除策略可以保证过期键会尽可能快地被删除，并释放过期键所占用的内存。</strong><br>​		<strong>另一方面，定时删除策略的缺点是，它对 CPU 时间是最不友好的:在过期键比较多的情况下，删除过期键这一行为可能会占用相当一部分CPU 时间，</strong>在内存不紧张但是 CPU时间非常紧张的情况下，将 CPU 时间用在删除和当前任务无关的过期键上，无疑会对服务器<br>的响应时间和吞吐量造成影响。例如，如果正有大量的命令请求在等待服务器处理，并且服务器当前不缺少内存，那么服务器应该优先将 CPU 时间用在处理客户端的命请求上面，而不是用在删除过期键上面除此之外，创建一个定时器需要用到 Redis 服务器中的时间事件，而当前时间事件的实现方式一一无序链表，查找一个事件的时间复杂度为 0(M并不能高效地处理大时间事件。<br>因此，要让服务器创建大量的定时器，从而实现定时删除策略，在现阶段来说并不现实</p>
+<h3 id="9-5-2-情性删除"><a href="#9-5-2-情性删除" class="headerlink" title="9.5.2 情性删除"></a>9.5.2 情性删除</h3><p>​		<strong>惰性删除策略对 CPU 时间来说是最友好的:序只会在取出键时才对键进行过期检查这可以保证删除过期键的操作只会在非做不可的情况下进行，并且删除的目标仅限于当前处理的键，这个策略不会在删除其他无关的过期键上花费任何 CPU 时间。惰性删除策略的缺点是，它对内存是最不友好的:如果一个键已经过期，而这个键又仍然保留在数据库中，那么只要这个过期键不被删除，它所占用的内存就不会释放。</strong>在使用惰性删除策略时，如果数据库中有非常多的过期键，而这些过期键又恰好没有被访问到的话，那么它们也许永远也不会被删除(除非用户手动执行 FLUSHDB)，我们甚至可以将这种情况看作是一种内存泄漏-无用的垃圾数据占用了大量的内存，而服务器却不会自已去释放它们，这对于运行状态非常依赖于内存的 Redis 服务器来说，肯定不是一个好消息。举个例子，对于一些和时间有关的数据，比如日志 (10g)，在某个时间点之后，对它们的访问就会大大减少，甚至不再访问，如果这类过期数据大量地积压在数据库中，用户以为服务器已经自动将它们删除了，但实际上这些键仍然存在，而且键所占用的内存也没有释放，那么造成的后果肯定是非常严重的。</p>
+<h3 id="9-5-3-定期删除"><a href="#9-5-3-定期删除" class="headerlink" title="9.5.3 定期删除"></a>9.5.3 定期删除</h3><p>​		从上面对定时删除和惰性删除的讨论来看，这两种删除方式在单一使用时都有明显的缺陷:</p>
+<p>​		定时删除占用太多CPU 时间，影响服务器的响应时间和吞吐量。</p>
+<p>​		惰性删除浪费太多内存，有内存泄漏的危险</p>
+<p>​		<strong>定期删除策略是前两种策略的一种整合和折中</strong><br>​		<strong>定期删除策略每隔一段时间执行一次删除过期键操作，并通过限制删除操作执行的时长和频率来减少删除操作对 CPU 时间的影响。</strong><br> 除此之外，通过定期删除过期键，定期删除策略有效地减少了因为过期键而带来的内存浪费。<br>定期删除策略的难点是确定删除操作执行的时长和频率:口 如果删除操作执行得太频繁，或者执行的时间太长，定期删除策略就会退化成定时删除策略，以至于将 CPU 时间过多地消耗在删除过期键上面。 如果删除操作执行得太少，或者执行的时间太短，定期删除策略又会和性删除策略一样，出现浪费内存的情况。<br>因此，如果采用定期删除策略的话，服务器必须根据情况，合理地设置删除操作的执行时长和执行频率。</p>
+<h2 id="9-6-Redis-的过期键删除策略"><a href="#9-6-Redis-的过期键删除策略" class="headerlink" title="9.6 Redis 的过期键删除策略"></a>9.6 Redis 的过期键删除策略</h2><p>​		<strong>在前一节，我们讨论了定时删除、惰性删除和定期删除三种过期键删除策略，Redis 服务器实际使用的是惰性删除和定期删除两种策略:通过配合使用这两种删除策略，服务器可以很好地在合理使用CPU 时间和避免浪费内存空间之间取得平衡。</strong></p>
+<h3 id="9-6-1-惰性删除策略的实现"><a href="#9-6-1-惰性删除策略的实现" class="headerlink" title="9.6.1 惰性删除策略的实现"></a>9.6.1 惰性删除策略的实现</h3><img src="/2023/09/21/blog-post2/image-20230226225340395.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="9-8-1发送通知"><a href="#9-8-1发送通知" class="headerlink" title="9.8.1发送通知"></a>9.8.1发送通知</h3><p>​		发送数据库通知的功能是由 notify.c&#x2F;notifyKeyspaceEvent 函数实现的</p>
+<p>​		<code>void notifyKeyspaceEvent(int type, char *event, robj *key,int dbid);</code></p>
+<p>​		函数的 type 参数是当前想要发送的通知的类型，程序会根据这个值来判断通知是否就是服务器配置notify-keyspace-events 选项所选定的通知类型，从而决定是否发送通知</p>
+<p>​		event、keys 和 dbid分别是事件的名称、产生事件的键，以及产生事件的数据库号码、函数会根据 type 参数以及这三个参数来构建事通知的内容，以及接收通知的频道名</p>
+<p>​		每当一个 Redis 命令需要发送数据库通知的时候，该命令的实现函数就会调用notify-KeyspaceEvent 函数，并向函数传递传递该命令所引发的事件的相关信息。</p>
+<h2 id="9-9-重点回顾"><a href="#9-9-重点回顾" class="headerlink" title="9.9 重点回顾"></a>9.9 重点回顾</h2><ul>
+<li>Redis 服务器的所有数据库都保存在 redisServer.db 数组中，而数据库的数量则由 redisServer.dbnum 属性保存。</li>
+<li>客户端通过<strong>修改目标数据库指针</strong>，让它指向 redisServer.db 数组中的不同元素来切换不同的数据库</li>
+<li><strong>数据库主要由 dict 和expires 两个字典构成，其中 dict 字典负责保存键值对而expires字典则负责保存键的过期时间。</strong></li>
+<li><strong>因为数据库由字典构成，所以对数据库的操作都是建立在字典操作之上的。</strong></li>
+<li><strong>数据库的键总是一个字符对象，而值则可以是任意一种 Redis 对象类型</strong>，包括字符串对象、哈希表对象、集合对象、列表对象和有序集合对象，分别对应字符申键哈希表键、集合键、列表键和有序集合键。</li>
+<li>expires 字典的键指向数据库中的某个键，而值则记录了数据库键的过期时间，过期时间是一个以毫秒为单位的 UNIX 时间戳</li>
+<li>Redis 使用惰性除和定期删除两种策略来删除过期的键:性删除策略只在碰到过期键时才进行删除操作，定期删除策略则每隔一段时间主动查找并删除过期键。</li>
+<li>执行SAVE命令或者BGSAVE 命令所产生的新 RDB文件不会含已经过期的键</li>
+<li>执行BGREWRITEAOF命今所产生的重AOF文件不会含已经过期的键当一个过期键被删除之后，服务器会追加一条 DEL 命令到现有 AOF 文件的末尾显式地删除过期键</li>
+<li>当主服务器删除一个过期键之后，它会向所有从服务器发送一条 DEL 命令，显式地删除过期键</li>
+<li>从服务器即使发现过期键也不会自作主张地删除它，而是等待主节点发来DEL命令这种统一、中心化的过期键删除策略可以保证主从服务器数据的一致性</li>
+<li>当Redis 命令对数据库进行修改之后，服务器会根据配置向客户端发送数据库通知</li>
+</ul>
+<h1 id="第10章-RDB-持久化"><a href="#第10章-RDB-持久化" class="headerlink" title="第10章 RDB 持久化"></a>第10章 RDB <strong>持久化</strong></h1><p>​		Redis 是一个键值对数据库服务器，服务器中通常含着任意个非空数据库，而每个非空数据库中又可以包含任意个键值对，为了方便起见，我们将<strong>服务器中的非空数据库以及它们的键值对统称为数据库状态</strong>。</p>
+<h2 id="10-1-RDB文件的创建与载入"><a href="#10-1-RDB文件的创建与载入" class="headerlink" title="10.1 RDB文件的创建与载入"></a>10.1 RDB文件的创建与载入</h2><p>​		<strong>有两个 Redis 命令可以用于生成 RDB 文件，一个是SAVE，另一个是BGSAVE</strong></p>
+<p>​		<strong>SAVE命令会阻塞 Redis 服务器进程，直到RDB文件创建完毕为止，在服务器进阻塞期间，服务器不能处理任何命令请求</strong></p>
+<figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs accesslog"><span class="hljs-number">127.0.0.1:6379</span>&gt; save    # 等待命令执行完成<br>OK<br><span class="hljs-number">127.0.0.1:6379</span>&gt; <br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
+      
+        <a href="/tags/%E7%B4%A2%E5%BC%95/" class="print-no-link">#索引</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Redis设计与实践读书笔记</div>
+      <div>https://perfectbullet.github.io/2023/09/21/blog-post2/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>perfectbullet</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年9月21日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/09/15/my-blog-build-remark/" title="飞雪如歌的小猪佩奇">
+                        <span class="hidden-mobile">飞雪如歌的小猪佩奇</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
