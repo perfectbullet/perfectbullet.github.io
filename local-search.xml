@@ -4,6 +4,42 @@
   
   
   <entry>
+    <title>Manage-data-in-Docker</title>
+    <link href="/2023/09/27/Manage-data-in-Docker/"/>
+    <url>/2023/09/27/Manage-data-in-Docker/</url>
+    
+    <content type="html"><![CDATA[<h1 id="Manage-data-in-Docker"><a href="#Manage-data-in-Docker" class="headerlink" title="Manage data in Docker"></a>Manage data in Docker</h1><p>Docker has two options for containers to store files on the host machine, so that the files are persisted even after the container stops: <em>volumes</em>, and <em>bind mounts</em>.</p><p>Docker also supports containers storing files in-memory on the host machine. Such files are not persisted. </p><h2 id="Choose-the-right-type-of-mount"><a href="#Choose-the-right-type-of-mount" class="headerlink" title="Choose the right type of mount"></a><a href="https://docs.docker.com/storage/#choose-the-right-type-of-mount">Choose the right type of mount</a></h2><p>An easy way to visualize the difference among volumes, bind mounts, and <code>tmpfs</code> mounts is to <strong>think about where the data lives on the Docker host</strong>.</p><p><img src="https://docs.docker.com/storage/images/types-of-mounts.png" alt="Types of mounts and where they live on the Docker host"></p><ul><li><strong>Volumes</strong> are stored in a part of the host filesystem which is <em>managed by Docker</em> (<code>/var/lib/docker/volumes/</code> on Linux). <strong>Non-Docker processes should not modify this part of the filesystem.</strong> Volumes are the best way to persist data in Docker.</li><li><strong>Bind mounts</strong> may be stored <em>anywhere</em> on the host system. They may even be important system files or directories. Non-Docker processes on the Docker host or a Docker container can modify them at any time.</li><li><strong><code>tmpfs</code> mounts</strong> are stored in the host system’s memory only, and are never written to the host system’s filesystem.</li></ul><p>to be continue</p><p><a href="https://docs.docker.com/storage/">https://docs.docker.com/storage/</a></p>]]></content>
+    
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Manage data in Docker</title>
+    <link href="/2023/09/21/Manage%20data%20in%20Docker/"/>
+    <url>/2023/09/21/Manage%20data%20in%20Docker/</url>
+    
+    <content type="html"><![CDATA[<h1 id="Manage-data-in-Docker"><a href="#Manage-data-in-Docker" class="headerlink" title="Manage data in Docker"></a>Manage data in Docker</h1><p>Docker has two options for containers to store files on the host machine, so that the files are persisted even after the container stops: <em>volumes</em>, and <em>bind mounts</em>.</p><p>Docker also supports containers storing files in-memory on the host machine. Such files are not persisted. </p><h2 id="Choose-the-right-type-of-mount"><a href="#Choose-the-right-type-of-mount" class="headerlink" title="Choose the right type of mount"></a><a href="https://docs.docker.com/storage/#choose-the-right-type-of-mount">Choose the right type of mount</a></h2><p>An easy way to visualize the difference among volumes, bind mounts, and <code>tmpfs</code> mounts is to <strong>think about where the data lives on the Docker host</strong>.</p><p><img src="https://docs.docker.com/storage/images/types-of-mounts.png" alt="Types of mounts and where they live on the Docker host"></p><ul><li><strong>Volumes</strong> are stored in a part of the host filesystem which is <em>managed by Docker</em> (<code>/var/lib/docker/volumes/</code> on Linux). <strong>Non-Docker processes should not modify this part of the filesystem.</strong> Volumes are the best way to persist data in Docker.</li><li><strong>Bind mounts</strong> may be stored <em>anywhere</em> on the host system. They may even be important system files or directories. Non-Docker processes on the Docker host or a Docker container can modify them at any time.</li><li><strong><code>tmpfs</code> mounts</strong> are stored in the host system’s memory only, and are never written to the host system’s filesystem.</li></ul><p>to be continue</p><p><a href="https://docs.docker.com/storage/">https://docs.docker.com/storage/</a></p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Docker</tag>
+      
+      <tag>Manage data in Docker</tag>
+      
+      <tag>Docker官网摘要</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Redis设计与实践读书笔记</title>
     <link href="/2023/09/21/blog-post2/"/>
     <url>/2023/09/21/blog-post2/</url>
