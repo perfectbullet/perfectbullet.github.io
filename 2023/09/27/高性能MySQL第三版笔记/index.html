@@ -1,0 +1,996 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="perfectbullet">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="高性能MySQL第三版笔记一些零散知识点 INNER JOIN（内连接,或等值连接）：获取两个表中字段匹配关系的记录。  ​		INNER JOIN(也可以省略 INNER 使用 JOIN，效果一样) MySQL  关键字 USING 用法using()用于两张表的join查询，要求using()指定的列在两个表中均存在，并使用之用于join的条件。 12345678910111213141516">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高性能MySQL第三版笔记">
+<meta property="og:url" content="https://perfectbullet.github.io/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="perfectbullet.github.io">
+<meta property="og:description" content="高性能MySQL第三版笔记一些零散知识点 INNER JOIN（内连接,或等值连接）：获取两个表中字段匹配关系的记录。  ​		INNER JOIN(也可以省略 INNER 使用 JOIN，效果一样) MySQL  关键字 USING 用法using()用于两张表的join查询，要求using()指定的列在两个表中均存在，并使用之用于join的条件。 12345678910111213141516">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230104232807095.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230104233225549.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230107232028503.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230108235047219.png">
+<meta property="og:image" content="https://perfectbullet.github.io/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230108235356912.png">
+<meta property="article:published_time" content="2023-09-27T15:49:49.000Z">
+<meta property="article:modified_time" content="2023-09-27T15:50:57.178Z">
+<meta property="article:author" content="perfectbullet">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="高性能MySQL第三版笔记">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://perfectbullet.github.io/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230104232807095.png">
+  
+  
+  
+  <title>高性能MySQL第三版笔记 - perfectbullet.github.io</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"perfectbullet.github.io","root":"/","version":"1.9.5-a","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>小猪佩奇打了小猪佩奇的飞雪如歌</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="高性能MySQL第三版笔记"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-09-27 23:49" pubdate>
+          2023年9月27日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          30k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          247 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">高性能MySQL第三版笔记</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="高性能MySQL第三版笔记"><a href="#高性能MySQL第三版笔记" class="headerlink" title="高性能MySQL第三版笔记"></a>高性能MySQL第三版笔记</h1><h1 id="一些零散知识点"><a href="#一些零散知识点" class="headerlink" title="一些零散知识点"></a>一些零散知识点</h1><ul>
+<li><strong>INNER JOIN（内连接,或等值连接）</strong>：获取两个表中字段匹配关系的记录。</li>
+</ul>
+<p>​		INNER JOIN(也可以省略 INNER 使用 JOIN，效果一样)</p>
+<h3 id="MySQL-关键字-USING-用法"><a href="#MySQL-关键字-USING-用法" class="headerlink" title="MySQL  关键字 USING 用法"></a><strong>MySQL  关键字 USING 用法</strong></h3><p>using()用于两张表的join查询，要求using()指定的列在两个表中均存在，并使用之用于join的条件。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs sql"># 使用<span class="hljs-keyword">using</span><br><span class="hljs-keyword">SELECT</span><br>	film.<span class="hljs-operator">*</span><br><span class="hljs-keyword">FROM</span><br>	sakila.film<br><span class="hljs-keyword">INNER</span> <span class="hljs-keyword">JOIN</span> sakila.film_actor <span class="hljs-keyword">USING</span> (film_id)<br><span class="hljs-keyword">WHERE</span><br>	actor_id <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;<br><br># 等价得 使用 <span class="hljs-keyword">ON</span> 来操作<br><span class="hljs-keyword">SELECT</span><br>	film.<span class="hljs-operator">*</span><br><span class="hljs-keyword">FROM</span><br>	sakila.film<br><span class="hljs-keyword">INNER</span> <span class="hljs-keyword">JOIN</span> sakila.film_actor <span class="hljs-keyword">ON</span> film_actor.film_id <span class="hljs-operator">=</span> film.film_id<br><span class="hljs-keyword">WHERE</span><br>	actor_id <span class="hljs-operator">=</span> <span class="hljs-number">1</span>;<br></code></pre></td></tr></table></figure>
+
+
+
+<h1 id="第6章-查询性能优化"><a href="#第6章-查询性能优化" class="headerlink" title="第6章 查询性能优化"></a>第6章 查询性能优化</h1><h2 id="6-7优化特定类型查询"><a href="#6-7优化特定类型查询" class="headerlink" title="6.7优化特定类型查询"></a>6.7优化特定类型查询</h2><h3 id="6-7-5优化LIMIT分页"><a href="#6-7-5优化LIMIT分页" class="headerlink" title="6.7.5优化LIMIT分页"></a><strong>6.7.5优化LIMIT分页</strong></h3><p>在系统中需要进行分页操作的时候，我们通常会使用 LIMIT 加上偏移量的办法实现，同时加上合适的 ORDER BY子句。如果有对应的索引，通常效率会不错，否则，MySQL需要做大量的文件排序操作。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span><br>	film_id,<br>	description<br><span class="hljs-keyword">FROM</span><br>	sakila.film<br><span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span><br>	title<br>LIMIT <span class="hljs-number">5</span> <span class="hljs-keyword">OFFSET</span> <span class="hljs-number">500</span>;<br></code></pre></td></tr></table></figure>
+
+<p>在数据过多时，可能往后翻很多页， 这个时候需要优化，<br>优化一，优化此类分页查询的一个最简单的办法就是尽可能地使用索引覆盖扫描，</p>
+<p>而不是查询所有的列。然后根据需要做一次关联操作再返回所需的列。<br>对于偏移量很大的时候，这样做的效率会提升非常大。考虑下面的查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span><br>	film.film_id,<br>	film.description<br><span class="hljs-keyword">FROM</span><br>	sakila.film<br><span class="hljs-keyword">INNER</span> <span class="hljs-keyword">JOIN</span> (<br>	<span class="hljs-keyword">SELECT</span><br>		film.film_id<br>	<span class="hljs-keyword">FROM</span><br>		sakila.film<br>	<span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span><br>		title<br>	LIMIT <span class="hljs-number">5</span> <span class="hljs-keyword">OFFSET</span> <span class="hljs-number">500</span><br>) <span class="hljs-keyword">as</span> lim <span class="hljs-keyword">USING</span> (film_id);<br></code></pre></td></tr></table></figure>
+
+<p>有时候也可以将LIMIT查询转换为已知位置的查询，<br>让MySQL 通过范围扫描获得到对应的结果。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> film_id, description <span class="hljs-keyword">FROM</span> sakila.film <span class="hljs-keyword">WHERE</span> film_id <span class="hljs-keyword">BETWEEN</span> <span class="hljs-number">50</span> <span class="hljs-keyword">AND</span> <span class="hljs-number">54</span> <span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> film_id;<br></code></pre></td></tr></table></figure>
+
+<p>LIMIT和OFFSET的问题，其实是OFFSET的问题，它会导致MySQL扫描大量不需要的行然后再抛弃掉。</p>
+<p>如果可以使用书签记录上次取数据的位置，那么下次就可以直接从该书签记录的位置开始扫描，这样就可以避免使用 OFFSET。例如，若需要按照租借记录做翻页，那么可以根据最新一条租借记录向后追溯，这种做法可行是因为租借记录的主键是单调增长的。首先使用下面的查询获得第一组结果 :</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> sakila.rental <span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> rental_id <span class="hljs-keyword">DESC</span> LIMIT <span class="hljs-number">20</span>;<br></code></pre></td></tr></table></figure>
+
+<p>假设上面的查询返回的是主键为 16 049 到 16 030的租借记录，那么下一页查询就可以从16030这个点开始:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> sakila.rental <span class="hljs-keyword">WHERE</span> rental id <span class="hljs-operator">&lt;</span> <span class="hljs-number">16030</span> <span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> rental_id <span class="hljs-keyword">DESC</span> LIMIT <span class="hljs-number">20</span>;<br></code></pre></td></tr></table></figure>
+
+<p>该技术的好处是无论翻页到多么后面，其性能都会很好</p>
+<h3 id="6-7-9使用用户自定义变量"><a href="#6-7-9使用用户自定义变量" class="headerlink" title="6.7.9使用用户自定义变量"></a>6.7.9使用用户自定义变量</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">SET</span> <span class="hljs-variable">@one</span> :<span class="hljs-operator">=</span> <span class="hljs-number">1</span>;<br><span class="hljs-keyword">SET</span> <span class="hljs-variable">@min_actor</span> :<span class="hljs-operator">=</span>(<span class="hljs-keyword">SELECT</span> <span class="hljs-built_in">MIN</span>(actor_id) <span class="hljs-keyword">FROM</span> sakila.actor);<br><span class="hljs-keyword">SET</span> <span class="hljs-variable">@last_week</span> :<span class="hljs-operator">=</span> <span class="hljs-built_in">CURRENT_DATE</span> <span class="hljs-operator">-</span> <span class="hljs-type">INTERVAL</span> <span class="hljs-number">1</span> WEEK;<br><br><span class="hljs-keyword">SELECT</span> <span class="hljs-variable">@one</span>;<br><span class="hljs-keyword">SELECT</span> <span class="hljs-variable">@min_actor</span>;<br><span class="hljs-keyword">SELECT</span> <span class="hljs-variable">@last_week</span>;<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="总结-6-9"><a href="#总结-6-9" class="headerlink" title="总结 6.9"></a>总结 6.9</h2><p>如果把创建高性能应用程序比作是一个环环相扣的“难题”，除了前面介绍的 schema索引和查询语句设计之外，查询优化应该是解开“难题”的最后一步了。要想写一个好的查询，你必须要理解 schema 设计、索引设计等，反之亦然。</p>
+<p>理解查询是如何被执行的以及时间都消耗在哪些地方，这依然是前面我们介绍的响应时间的一部分。再加上一些诸如解析和优化过程的知识，就可以更进一步地理解上一章讨论的MySQL如何访问表和索引的内容了。这也从另一个维度帮助读者理解MySQL在访问表和索引时查询和索引的关系。</p>
+<p>优化通常都需要三管齐下 :不做、少做、快速地做。我们希望这里的案例能够帮助你将理论和实践联系起来。</p>
+<p>除了这些基础的手段，包括查询、表结构、索引等，MySQL 还有一些高级的特性可以帮助你优化应用，例如分区，分区和索引有些类似但是原理不同。MySQL还支持查询缓存，它可以帮你缓存查询结果，当完全相同的查询再次执行时，直接使用缓存结果 (回想一下，“不做”)。我们将在下一章中介绍这些特性。</p>
+<h1 id="第7章-MySQL高级特性"><a href="#第7章-MySQL高级特性" class="headerlink" title="第7章 MySQL高级特性"></a>第7章 MySQL高级特性</h1><h2 id="7-1-分区表"><a href="#7-1-分区表" class="headerlink" title="7.1 分区表"></a>7.1 分区表</h2><p><strong>对用户来说，分区表是一个独立的逻辑表，但是底层由多个物理子表组成。实现分区的代码实际上是对一组底层表的句柄对象 (Handler Object)的封装。</strong></p>
+<p>对分区表的请求，都会通过句柄对象转化成对存储引擎的接口调用。所以分区对于 SQL 层来说是一个完全封装底层实现的黑盒子，对应用是透明的，但是从底层的文件系统来看就很容易发现，每一个分区表都有一个使用 # 分隔命名的表文件。</p>
+<p><strong>MySQL 实现分区表的方式一一对底层表的封装一一意味着索引也是按照分区的子表定义的，而没有全局索引。</strong></p>
+<p>MySQL在创建表时使用PARTITION BY子定义每个分区存放的数据。</p>
+<p>在执行查询的时候，优化器会根据分区定义过滤那些没有我们需要数据的分区，这样查询就无须扫描所有分区一一只需要查找包含需要数据的分区就可以了。<br><strong>分区的一个主要目的是将数据按照一个较粗的粒度分在不同的表中。</strong>这样做可以将相关的数据存放在一起，另外，如果想一次批量删除整个分区的数据也会变得很方便。</p>
+<p>分区表使用场景：</p>
+<ul>
+<li>表非常大以至于无法全部都放在内存中，或者只在表的最后部分有热点数据，其他均是历史数据。（例如微博数据）</li>
+<li>分区表的数据更容易维护。可以对一个独立分区进行删除、优化、检查、修复等操作。</li>
+<li>分区表的数据可以分布在不同的物理设备上，从而高效地利用多个硬件设备可以使用分区表来避免某些特殊的瓶颈。</li>
+<li>如果需要，还可以备份和恢复独立的分区，这在非常大的数据集的场景下效果非常好。</li>
+</ul>
+<p>分区表的限制，下面是其中比较重要的几点 :</p>
+<ul>
+<li>一个表最多只能有 1024 个分区。</li>
+<li>如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来。</li>
+<li>分区表中无法使用外键约束。</li>
+</ul>
+<h3 id="7-1-1-分区表原理"><a href="#7-1-1-分区表原理" class="headerlink" title="7.1.1 分区表原理"></a>7.1.1 分区表原理</h3><p>如前所述，分区表由多个相关的底层表实现，这些底层表也是由句柄对象 (Handlerobject)表示，所以我们也可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样(所有的底层表都必须使用相同的存储引擎)，分区表的索引只是在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和一个普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部分。</p>
+<p>分区表上的操作按照下面的操作逻辑进行 :</p>
+<p><strong>SELECT查询</strong><br>当查询一个分区表的时候，分区层先打开并锁住所有的底层表，优化器先判断是否可以过滤部分分区，然后再调用对应的存储引擎接口访问各个分区的数据。</p>
+<p><strong>INSERT操作</strong><br>当写入一条记录时，分区层先打开并锁住所有的底层表，然后确定哪个分区接收这条记录，再将记录写入对应底层表。</p>
+<p><strong>DELETE操作</strong><br>当删除一条记录时，分区层先打小并锁住所有的底层表，然后确定数据对应的分区最后对相应底层表进行删除操作。</p>
+<p><strong>UPDATE操作</strong><br>当更新一条记录时，分区层先打开并锁住所有的底层表，MySQL 先确定需要更新的记录在哪个分区，然后取出数据并更新，再判断更新后的数据应该放在哪个分区最后对底层表进行写入操作，并对原数据所在的底层表进行删除操作。</p>
+<h3 id="7-1-2-分区表的类型"><a href="#7-1-2-分区表的类型" class="headerlink" title="7.1.2 分区表的类型"></a>7.1.2 分区表的类型</h3><p>MySQL 支持多种分区表。最多的是根据范围进行分区，每个分区存储落在某个范围的记录，分区表达式可以是列，也可以是包含列的表达式。例如，下表就可以将每一年的销售额存放在不同的分区里 :</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> sales(<span class="hljs-keyword">order</span> <span class="hljs-type">date</span> DATETIME <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span>, <br>                   <span class="hljs-comment">-- Other columns omitted </span><br>                   ENGINE<span class="hljs-operator">=</span>InnoDB <span class="hljs-keyword">PARTITION</span> <span class="hljs-keyword">BY</span> <span class="hljs-keyword">RANGE</span>(<span class="hljs-keyword">YEAR</span>(<span class="hljs-keyword">order</span> <span class="hljs-type">date</span>)) (<br>                       <span class="hljs-keyword">PARTITION</span> P_2010 <span class="hljs-keyword">VALUES</span> LESS THAN (<span class="hljs-number">2010</span>),<br>                       <span class="hljs-keyword">PARTITION</span> P_2011 <span class="hljs-keyword">VALUES</span> LESS THAN (<span class="hljs-number">2011</span>),<br>                       <span class="hljs-keyword">PARTITION</span> P_2012 <span class="hljs-keyword">VALUES</span> LESS THAN (<span class="hljs-number">2012</span>),<br>                       <span class="hljs-keyword">PARTITION</span> p_catchall <span class="hljs-keyword">VALUES</span> LESS THAN MAXVALUE );<br></code></pre></td></tr></table></figure>
+
+<p>PARTITION 分区子句中可以使用各种函数。但有一个要求，表达式返回的值要是一个确定的整数，且不能是一个常数。这里我们使用函数 YEAR(), 也可以使用其他函数,</p>
+<p>如TO_DAYS()。根据时间间隔进行分区，是一种很常见的分区方式，后面我们还会再回过头来看这个例子，看看如何优化这个例子来避免一些问题。</p>
+<p>MySQL还支持键值、哈希和列表分区，这其中有些还支持子分区，不过我们在生产环境中很少见到。</p>
+<p>在我们看过的一个子分区的案例中，对一个类似于前面我们设计的按时间分区的InnoDB表，系统通过子分区可降低索引的互斥访问的竞争。最近一年的分区的数据会被非常频繁地访问，这会导致大量的互斥量的竞争。使用哈希子分区可以将数据切成多个小片大大降低互斥量的竞争问题。</p>
+<p><strong>我们还看到的一些其他的分区技术包括</strong></p>
+<ul>
+<li>根据键值进行分区，来减少InnoDB的互斥量竞争使用。</li>
+<li>数学模函数来进行分区，然后将数据轮询放入不同的分区。例如，可以对日期做模 7的运算，或者更简单地使用返回周几的函数，如果只想保留最近几天的数据这样分区很方便。</li>
+<li>假设表有一个自增的主键列 id，希望根据时间将最近的热点数据集中存放。那么必须将时间戳包含在主键当中才行，而这和主键本身的意义相矛盾。这种情况下也可以使用这样的分区表达式来实现相同的目的:HASH(id DIV 1000000)，这将为100万数据建立一个分区。这样一方面实现了当初的分区目的，另一方面比起使用时间范围分区还避免了一个问题，就是当超过一定阀值时，如果使用时间范围分区就必须新增分区。</li>
+</ul>
+<h3 id="7-1-3-如何使用分区表"><a href="#7-1-3-如何使用分区表" class="headerlink" title="7.1.3 如何使用分区表"></a>7.1.3 如何使用分区表</h3><p>假设我们希望从一个非常大的表中查询出一段时间的记录，而这个表中包含了很多年的历史数据，数据是按照时间排序的，例如，希望查询最近几个月的数据，这大约有 10 亿条记录。可能过些年本书会过时，不过我们还是假设使用的是 2012 年的硬件设备，而原表中有 10TB 的数据，这个数据量远大于内存，并且使用的是传统硬盘，不是闪存(多数 SSD 也没有这么大的空间)。你打算如何查询这个表?如何才能更高效?</p>
+<p>首先很肯定:因为数据量巨大，肯定不能在每次查询的时候都扫描全表。考虑到索引在空间和维护上的消耗，也不希望使用索引。即使真的使用索引，你会发现数据并不是按照想要的方式聚集的，而且会有大量的碎片产生，最终会导致一个查询产生成千上万的随机 I&#x2F;0，应用程序也随之僵死。情况好一点的时候，也许可以通过一两个索引解决一些问题。不过多数情况下，索引不会有任何作用。这时候只有两条路可选:让所有的查询都只在数据表上做顺序扫描，或者将数据表和索引全部都缓存在内存里。</p>
+<p>这里需要再陈述一遍:<strong>在数据量超大的时候，B-Tree 索引就无法起作用了。</strong>除非是索引覆盖查询，否则数据库服务器需要根据索引扫描的结果<strong>回表</strong>，<strong>查询所有符合条件的记录，如果数据量巨大，这将产生大量随机I&#x2F;0</strong>，随之，数据库的响应时间将大到不可接受的程度。另外，索引维护(磁盘空间、I&#x2F;0 操作)的代价也非常高。有些系统，如Infobright，意识到这一点，于是就完全放弃使用 B-Tree 索引，而选择了一些更粗粒度的但消耗更少的方式检索数据，例如在大量数据上只索引对应的一小块元数据。</p>
+<p>这正是分区要做的事情。理解分区时还可以将其当作索引的最初形态，以代价非常小的方式定位到需要的数据在哪一片“区域”。在这片“区域”中，你可以做顺序扫描，可以建索引，还可以将数据都缓存到内存，等等。因为分区无须额外的数据结构记录每个分区有哪些数据一一分区不需要精确定位每条数据的位置，也就无须额外的数据结构所以其代价非常低。只需要一个简单的表达式就可以表达每个分区存放的是什么数据。</p>
+<p>为了保证大数据量的可扩展性，一般有下面两个策略:</p>
+<p><strong>全量扫描数据，不要任何索引</strong><br>可以使用简单的分区方式存放表，不要任何索引，根据分区的规则大致定位需要的数据位置。只要能够使用 WHERE 条件，将需要的数据限制在少数分区中，则效率是很高的。当然，也需要做一些简单的运算保证查询的响应时间能够满足需求。使用该策略假设不用将数据完全放入到内存中，同时还假设需要的数据全都在磁盘上，因为内存相对很小，数据很快会被挤出内存，所以缓存起不了任何作用。这个策略适用于以正常的方式访问大量数据的时候。警告:后面我们会详细解释，必须将查询需要扫描的分区个数限制在一个很小的数量。</p>
+<p><strong>索引数据，并分离热点</strong><br>如果数据有明显的“热点”, 而且除了这部分数据，其他数据很少被访问到，那么可以将这部分热点数据单独放在一个分区中，让这个分区的数据能够有机会都缓存在内存中。这样查询就可以只访问一个很小的分区表，能够使用索引，也能够有效地使用缓存。</p>
+<h3 id="7-1-4-什么情况下会出问题"><a href="#7-1-4-什么情况下会出问题" class="headerlink" title="7.1.4 什么情况下会出问题"></a>7.1.4 什么情况下会出问题</h3><p>上面我们介绍的两个分区策略都基于两个非常重要的假设:查询都能够过 (prunning掉很多额外的分区、分区本身并不会带来很多额外的代价。而事实证明，这两个假设在某些场景下会有问题。下面介绍一些可能会遇到的问题。</p>
+<p><strong>NULL 值会使分区过滤无效</strong><br>关于分区表一个容易让人误解的地方就是分区的表达式的值可以是 NULL:第一个分区是一个特殊分区。假设按照 PARTITION BY RANGE YEAR(order date)分区，那么所有 order date 为 NULL 或者是一个非法值的时候，记录都会被存放到第一个分区.[^注1]</p>
+<p>现在假设有下面的查询:WHERE order date BETWEEN 2012-01-0’ AND2012-01-31’。实际上，MySQL 会检查两个分区，而不是之前猜想的一个:它会检查 2012 年这个分区，同时它还会检查这个表的第一个分区。检查第一个分区是因为YEAR()函数在接收非法值的时候可能会返回 NULL值，那么这个范围的值可能会返回 NULL而被存放到第一个分区了。这一点对于其他很多函数，例如 TO DAYS()也一样。[^注2]</p>
+<p>如果第一个分区非常大，特别是当使用“全量扫描数据，不要任何索引”的策时代价会非常大。而且扫描两个分区来查找列也不是我们使用分区表的初衷。为了避免这种情况，可以创建一个“无用”的第一个分区，例如，上面的例子中可以使用PARTITION p_nulls VALUES LESS THAN ()来创建第一个分区。如果插表中的数据都是有效的，那么第一个分区就是空的，这样即使需要检测第一个分区，代价也会非常小。</p>
+<p>在MySQL 5.5中就不需要这个优化技巧了，因为可以直接使用列本身而不是基于列的函数进行分区:PARTITION BY RANGE COLUMNS(order date)。所以这个案例最好的解决方法是能够直接使用 MySQL5.5 的这个语法。</p>
+<p>[^注2]: 因为可以在这里存放一个非法的日期，所以甚至当order date是一个非 NULL值的时候，仍然会出现这样情况。<br>[^注1]: 从用户角度来看，这应该是一个缺陷，不过从MySQL 开发者的角度来看这是一个特性</p>
+<p><strong>分区列和索引列不匹配</strong><br>如果定义的索引列和分区列不匹配，会导致查询无法进行分区过滤。假设在列a上定义了索引，而在列 b上进行分区。因为每个分区都有其独立的索引，所以扫描列b上的索引就需要扫描每一个分区内对应的索引。如果每个分区内对应索引的非叶子节点都在内存中，那么扫描的速度还可以接受，但如果能跳过某些分区索引当然会更好。<strong>要避免这个问题，应该避免建立和分区列不匹配的索引，除非查询中还同时包含了可以过滤分区的条件。</strong></p>
+<p>听起来避免这个问题很简单，不过有时候也会遇到一些意想不到的问题。例如，在一个关联查询中，分区表在关联顺序中是第二个表，并且关联使用的索引和分区条件并不匹配。那么关联时针对第一个表符合条件的每一行，都需要访问并搜索第个表的所有分区。</p>
+<p><strong>选择分区的成本可能很高</strong><br>如前所述分区有很多类型，不同类型分区的实现方式也不同，所以它们的性能也各不相同。尤其是范围分区，对于回答“这一行属于哪个分区”、“这些符合查询条件的行在哪些分区”这样的问题的成本可能会非常高，因为服务器需要扫描所有的分区定义的列表来找到正确的答案。类似这样的线性搜索的效率不高，所以随着分区数的增长，成本会越来越高.</p>
+<p>我们所实际碰到的类似这样的最糟糕的一次问题是按行写入大量数据的时候。每写入一行数据到范围分区的表时，都需要扫描分区定义列表来找到合适的目标分区。可以通过限制分区的数量来缓解此问题，根据实践经验，对大多数系统来说，100个左右的分区是没有问题的。</p>
+<p>其他的分区类型，比如键分区和哈希分区，则没有这样的问题</p>
+<p><strong>打开并锁住所有底层表的成本可能很高</strong></p>
+<p>当查询访问分区表的时候，MySQL 需要打开并锁住所有的底层表，这是分区表的另一个开销。这个操作在分区过滤之前发生，所以无法通过分区过滤降低此开销，并且该开销也和分区类型无关，会影响所有的查询。这一点对一些本身操作非常快的查询，比如根据主键查找单行，会带来明显的额外开销。可以用批量操作的方式来降低单个操作的此类开销，例如使用批量插入或者 LOAD DATA NFILE、一次删除多行数据，等等。当然同时还是需要限制分区的个数。</p>
+<p><strong>维护分区的成本可能很高</strong><br>某些分区维护操作的速度会非常快，例如新增或者删除分区(当删除一个大分区可能会很慢，不过这是另一回事)。而有些操作，例如重组分区或者类似 ALTER 语句的重组分区的原理与 ALTER类似，先创建一个临时的操作:这类操作需要复制数据。分区，然后将数据复制到其中，最后再删除原分区。</p>
+<p>如上所述，分区表不是什么“银弹”。下面是目前分区实现中的一些其他限制 :</p>
+<ul>
+<li>所有分区都必须使用相同的存储引擎</li>
+<li>分区函数中可以使用的函数和表达式也有一些限制</li>
+<li>某些存储引擎不支持分区。</li>
+<li>对于MyISAM的分区表，不能再使用 LOAD INDEX INTOCACHE操作</li>
+<li>对于 MyISAM 表，使用分区表时需要打开更多的文件描述符。虽然看起来是一个表其实背后有很多独立的分区，每一个分区对于存储引擎来说都是一个独立的表。这样即使分区表只占用一个表缓存条目，文件描述符还是需要多个。因此，即使已经配置了合适的表缓存，以确保不会超过操作系统的单个进程可以打开的文件描述符的个数，但对于分区表而言，还是会出现超过文件描述符限制的问题。</li>
+</ul>
+<p>最后，需要指出的是较老版本的 MySQL 问题会更多些。所有的软件都是有 bug的。分区表在MySQL 5.1中引入，在后面的 5.1.40和5150之后修复了很多分区表的 bug。在MySQL 5.5 中，分区表又做了很多改进，这才使得分区表可以逐步考用在生产环境了在即将发布的MySQL 5.6版本中，分区表做了更多的增强，例如新引的ALTER TABLEEXCHANGE PARTITION.</p>
+<h3 id="7-1-5-查询优化"><a href="#7-1-5-查询优化" class="headerlink" title="7.1.5 查询优化"></a>7.1.5 查询优化</h3><p>引入分区给查询优化带来了一些新的思路 (同时也带来新的 bug)。分区最大的优点就是优化器可以根据分区函数来过滤一些分区。根据粗粒度索引的优势，通过分区过滤通常可以让查询扫描更少的数据 (在某些场景下)。</p>
+<p>所以，对于访问分区表来说，很重要的一点是要在 WHERE 条件中带入分区列，有时候即使看似多余的也要带上，这样就可以让优化器能够过滤掉无须访问的分区。如果没有这些条件，MySQL就需要让对应存储引擎访问这个表的所有分区，如果表非常大的话就可能会非常慢。</p>
+<p>使用EXPLAIN PARTITION 可以观察优化器是否执行了分区过滤，下面是一个示例:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql">EXPLAIN PARTITIONS <span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> Sales;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># 结果</span><br><span class="hljs-string">id:1</span><br><span class="hljs-attr">select type:</span> <span class="hljs-string">SIMPLE</span><br><span class="hljs-string">table:sales</span> <span class="hljs-string">by_day</span><br><span class="hljs-string">partitions:P_2010,p_2011,P_2012</span><br><span class="hljs-string">type:ALL</span><br><span class="hljs-string">possible_keys:NULL</span><br><span class="hljs-string">key:NULL</span><br><span class="hljs-attr">key_len:</span> <span class="hljs-literal">NULL</span><br><span class="hljs-attr">ref:</span> <span class="hljs-literal">NULL</span><br><span class="hljs-attr">rows:</span> <span class="hljs-number">3</span><br><span class="hljs-attr">Extra:</span><br></code></pre></td></tr></table></figure>
+
+<p>正如你所看到的，这个查询将访问所有的分区。下面我们在 WHERE 条中再加入一个时间限制条件:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql">EXPLAIN PARTITIONS <span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> salesby_day <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">day</span> <span class="hljs-operator">&gt;</span><span class="hljs-number">2011</span><span class="hljs-number">-01</span><span class="hljs-number">-01</span>;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># 结果</span><br><span class="hljs-string">id:1</span><br><span class="hljs-attr">select_type:</span> <span class="hljs-string">SIMPLE</span><br><span class="hljs-attr">table:</span> <span class="hljs-string">sales</span><br><span class="hljs-attr">by_daypartitions:</span> <span class="hljs-string">p_2011,p_2012</span><br></code></pre></td></tr></table></figure>
+
+<p>MySQL 优化器已经很善于过滤分区。比如它能够将范围条件转化为离散的值列表，并根据列表中的每个值过滤分区。然而，优化器也不是万能的。下面查询的 WHERE条件理论上可以过滤分区，但实际上却不行 :</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql">EXPLAIN PARTITIONS <span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> sales <span class="hljs-keyword">by</span> <span class="hljs-keyword">day</span> <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">YEAR</span>(<span class="hljs-keyword">day</span>) <span class="hljs-operator">=</span> <span class="hljs-number">2010</span>;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs sql"># 结果<br>id: <span class="hljs-number">1</span><br>select_type: SIMPLE<br><span class="hljs-keyword">table</span>: sales<br>by_daypartitions:p_2010,p_2011,p_2012<br></code></pre></td></tr></table></figure>
+
+<p>MySQL 只能在使用分区函数的列本身进行比较时才能过滤分区，而不能根据表达式的值去过滤分区，即使这个表达式就是分区函数也不行。这就和查询中使用独立的列才能使用索引的道理是一样的(参考第 5 章的相关内容)。所以只需要把上面的查询等价地改写为如下形式即可：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql">EXPLAIN PARTITIONS <span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> sales by_day <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">day</span> BETWEEN2010<span class="hljs-number">-01</span><span class="hljs-number">-01</span><span class="hljs-string">&#x27;AND 2010-12-31;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">id:</span> <span class="hljs-number">1</span><br><span class="hljs-attr">select_type:</span> <span class="hljs-string">SIMPLE</span><br><span class="hljs-attr">table:</span> <span class="hljs-string">sales_by_day</span><br><span class="hljs-attr">partitions:</span> <span class="hljs-string">p_2010</span><br></code></pre></td></tr></table></figure>
+
+<p>这里写的 WHERE条件中带入的是分区列，而不是基于分区列的表达式，所以优化器能够利用这个条件过滤部分分区。一个很重要的原则是: 即便在创建分区时可以使用表达式，但在查询时却只能根据列来过滤分区。</p>
+<p>优化器在处理查询的过程中总是尽可能聪明地去过滤分区。例如，若分区表是关联操作中的第二张表，且关联条件是分区键，MySQL就只会在对应的分区里匹配行。(EXPLAIN无法显示这种情况下的分区过滤，因为这是运行时的分区过滤，而不是查询优化阶段。)</p>
+<h3 id="7-1-6-合并表"><a href="#7-1-6-合并表" class="headerlink" title="7.1.6 合并表"></a><del>7.1.6 合并表</del></h3><p>合并表(Merge table) 是一种早期的、简单的分区实现，和分区表相比有一些不同的限制,并且缺乏优化。分区表严格来说是一个逻辑上的概念,用户无法访问底层的各个分区对用户来说分区是透明的。但是合并表允许用户单独访问各个子表。分区表和优化器的结合更紧密，这也是未来发展的趋势，而<strong>合并表则是一种将被淘汰的技术，在未来的版本中可能被删除。</strong></p>
+<h2 id="7-2-视图"><a href="#7-2-视图" class="headerlink" title="7.2 视图"></a>7.2 视图</h2><p>MySQL 5.0 版本之后开始引入视图。视图本身是一个虚拟表，不存放任何数据。在使用SQL 语句访问视图的时候，它返回的数据是 MySQL 从其他表中生成的。视图和表是在同一个命名空间，MySQL 在很多地方对于视图和表是同样对待的。不过视图和表也有不同，例如，不能对视图创建触发器，也不能使用 DROP TABLE 命令删除视图。</p>
+<p>在MySQL官方手册中对如何创建和使用视图有详细的介绍，本书不会详细介绍这些我们将主要介绍视图是如何实现的，以及优化器如何处理视图，通过了解这些，希望可以让大家在使用视图时获得更高的性能。我们将使用示例数据库 world 来演示视图是如何工作的:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">CREATE VIEW Oceania AS SELECT * FROM country WHERE Continent =&#x27;Oceania&#x27; WITH CHECK OPTION;<br></code></pre></td></tr></table></figure>
+
+<p>实现视图最简单的方法是将 SELECT 语句的结果存放到临时表中。当需要访问视图的时候直接访问这个临时表就可以了。我们先来看看下面的查询 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">SELECT Code, Name FROM Oceania WHERE name=&#x27;Australia&#x27;; <br></code></pre></td></tr></table></figure>
+
+<p>下面是使用临时表来模拟视图的方法。这里临时表的名字是为演示用的 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">CREATE TEMPORARY TABLE TMP_Oceania_123 AS SELECT *FROM country WHERE Continent=&#x27;Oceania&#x27;;<br>SELECT Code, Name FROM TMP_Oceania_123 WHERE name=&#x27;Australia&#x27;;<br></code></pre></td></tr></table></figure>
+
+<p>这样做会有明显的性能问题，优化器也很难优化在这个临时表上的查询。实现视图更好的方法是，重写含有视图的查询，将视图的定义 SOL 直接包含进查询的 SOL 中。下面的例子展示的是将视图定义的 SOL合并进查询 SOL 后的样子:</p>
+<p>MySQL 可以使用这两种办法中的任何一种来处理视图。这两种算法分别称为合并算法(MERGE)和临时表算法 (TEMPTABLE)4如果可能，会尽可能地使用合并算法。MySQL甚至可以嵌套地定义视图，也就是在一个视图上再定义另一个视图。 可以在 EXPLAINEXTENDED之后使用SHOW WARNINGS来查看使用视图的查询重写后的结果。</p>
+<p>如果是采用临时表算法实现的视图，EXPLAIN中会显示为派生表 (DERIVED)。图7-1展示了这两种实现的细节。</p>
+<img src="/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230104232807095.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>如果视图中包含 GROUY BY、DISTINCT、任何聚合函数、UNION、子查询等，只要无法在原表记录和视图记录中建立一一映射的场景中，MySQL 都将使用临时表算法来实现视图。上面列举的可能不全，而且这些规则在未来的版本中也可能会改变。如果你想确定MySQL 到底是使用合并算法还是临时表算法，可以EXPLAIN一条针对视图的简单查询:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">EXPLAIN SELECT * FROM &lt;viewname&gt;;<br>EXPLAIN SELECT Code, Mame FROM Oceania; <br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230104233225549.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>这里的 select_type为“DERIVED”说明该视图是采用临时表算法实现的。不过要注意如果产生的底层派生表很大，那么执行 EXPLAIN可能会非常慢。因为在 MySQL 5.5和更老的版本中，EXPLAIN是需要实际执行并产生该派生表的。</p>
+<p>视图的实现算法是视图本身的属性，和作用在视图上的查询语句无关。例如，可以为一<br>个基于简单查询的视图指定使用临时表算法:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">CREATE ALGORITHM=TEMPTABLE VIEW v1 AS SELECT * FROM sakila.actor;<br></code></pre></td></tr></table></figure>
+
+<p>实现该视图的 SOL 本身并不需要临时表，但基于该视图无论执行什么样的查询，视图都会生成一个临时表。</p>
+<h3 id="7-2-1-可更新视图"><a href="#7-2-1-可更新视图" class="headerlink" title="7.2.1 可更新视图"></a>7.2.1 可更新视图</h3><p>可更新视图 (updatable view) 是指可以通过更新这个视图来更新视图涉及的相关表。只要指定了合适的条件，就可以更新、删除甚至向视图中写入数据。例如，下面就是一个合理的操作:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">UPDATE Oceania SET Population = Population * 1.1 WHERE Name = &#x27;Australia&#x27;;<br></code></pre></td></tr></table></figure>
+
+<p>如果视图定义中包含了GROUP BY、UNION、聚合函数，以及其他一些特殊情况，就不能被更新了。更新视图的查询也可以是一个关联语句，但是有一个限制，被更新的列必须来自同一个表中。另外，所有使用临时表算法实现的视图都无法被更新。</p>
+<p>在上一节定义视图时使用的 CHECK OPTION子句，表示任何通过视图更新的行，都必须符合视图本身的 WHERE 条件定义。所以不能更新视图定义列以外的列，比如上例中不能更新Continent列，也不能插入不同 Continent值的新数据，否则MySQL会报如下的错误 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">UPDATE Oceania SET Continent =&#x27;Atlantis&#x27;;<br>-- ERROR 1369(HY000): CHECK OPTION failedworld.Oceania;<br></code></pre></td></tr></table></figure>
+
+<p>某些关系数据库允许在视图上建立 INSTEAD OF发器，通过触发器可以精确控制在修改视图数据时做些什么。不过 MySQL 不支持在视图上建任何触发器.</p>
+<h3 id="7-2-2-视图对性能的影响"><a href="#7-2-2-视图对性能的影响" class="headerlink" title="7.2.2 视图对性能的影响"></a>7.2.2 视图对性能的影响</h3><p>多数人认为视图不能提升性能，实际上，在 MySQL 中某些情况下视图也可以帮助提升性能。而且视图还可以和其他提升性能的方式叠加使用。例如，在重构 schema 的时候可以使用视图，使得在修改视图底层表结构的时候，应用代码还可能继续不报错的运行<br>可以使用视图实现基于列的权限控制，却不需要真正的在系统中创建列权限，因此没有额外的开销。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">CREATE VIEW publicemployeeinfo ASSELECT firstname,lastname -- but not socialsecuritynumber <br>FROM private.employeeinfo;<br>GRANT SELECT ON public.* TO public user;<br></code></pre></td></tr></table></figure>
+
+<p>有时候也可以使用伪临时视图实现一些功能。MySQL 虽然不能创建只在当前连接中存在的真正的临时视图，但是可以建一个特殊名字的视图，然后在连接结束的时候删除该视图。这样在连接过程中就可以在 FROM子句中使用这个视图，和使用子查询的方式完全相同，因为 MySQL在处理视图和处理子查询的代码路径完全不同，所以它们的性能也不同。下面是一个例子 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">-- Assuming 1234 is the result of CONNECTION ID()<br>CREATE VIEW temp.cost per_day_1234 AS SELECT DATE(ts) AS day,sum(cost) AS cost FROM logs.cost GROUP BY day;<br><br>SELECT c.day，c.cost，s.sales FROM temp.cost_per_day_1234 AS C INNER JOIN sales.sales per_day AS s USING(day);<br><br>DROP VIEW tempcost per day 1234;<br></code></pre></td></tr></table></figure>
+
+<p>我们这里使用连接 ID 作为视图名字的一部分来避免冲突。在应用发生崩和别的外导致未清理临时视图的时候，这个技巧使得清理临时视图变得很简单。详细的信息可以参考后面的“丢失的临时表”。</p>
+<p>使用临时表算法实现的视图，在某些时候性能会很糟糕(虽然可能比直接使用等效查询语句要好一点)。MySQL以递归的方式执行这类视图，先会执行外层查询，即使外层查询优化器将其优化得很好，但是 MySQL 优化器可能无法像其他的数据库那样做更多的内外结合的优化。外层查询的 WHERE条件无法“下推”到构建视图的临时表的查询中临时表也无法建立索引s。下面是一个例子，还是基于 temp.cost per_day_1234 这个视图:</p>
+<p>视图还引入了一些并非 MySQL 特有的其他问题。很多开发者以为视图很简单，但实际上其背后的逻辑可能非常复杂。开发人员如果没有意识到视图背后的复杂性，很可能会以为是在不停地重复查询一张简单的表，而没有意识到实际上是代价高昂的视图。我们见过不少案例，一条看起来很简单的查询，EXPLAIN出来却有几百行，因为其中一个或者多个表，实际上是引用了很多其他表的视图。</p>
+<p>如果打算使用视图来提升性能，需要做比较详细的测试。即使是合并算法实现的视图也会有额外的开销，而且视图的性能很难预测。在 MySQL 优化器中，视图的代码执行路径也完全不同，这部分代码测试还不够全面，可能会有一些隐藏缺陷和问题。所以，我们认为视图还不是那么成熟。例如，我们看到过这样的案例，复杂的视图和高并发的查询导致查询优化器花了大量时间在执行计划生成和统计数据阶段，这甚至会导致 MySQL服务器僵死，后来通过将视图转换成等价的查询语句解决了问题。这也说明视图一一即使是使用合并算法实现的一一并不总是有很优化的实现。</p>
+<h3 id="7-2-3-视图的限制"><a href="#7-2-3-视图的限制" class="headerlink" title="7.2.3 视图的限制"></a>7.2.3 视图的限制</h3><p>在其他的关系数据库中你可能使用过物化视图，MySQL 还不支持物化视图 (物化视图是指将视图结果数据存放在一个可以查看的表中，并定期从原始表中刷新数据到这个表中)。MySQL也不支持在视图中创建索引。不过，可以使用构建缓存表或者汇总表的办法来模拟物化视图和索引。可以直接使用Justin Swanharts的工具Flexviews 来实现这个目的。参考第 4章可以获得更多的相关细节。</p>
+<p>MySQL视图实现上也有一些让人烦恼的地方。例如，MySQL 并不会保存视图定义的原始SOL语，所以如果打算通过执行 SHOW CREATE VIEW后再简单地修改其结果的方式来重新定义视图，可能会大失所望。SHOW CREATE VIEW出来的视图创建语句将以一种不友好的内部格式呈现，充满了各种转义符和引号，没有代码格式化，没有注释，也没有缩进。</p>
+<h2 id="7-3-外键约束"><a href="#7-3-外键约束" class="headerlink" title="7.3 外键约束"></a>7.3 外键约束</h2><p>InnoDB是目前MySQL中唯一支持外键的内置存储引擎，所以如果需要外键支持那选择就不多了(PBXT也有外键支持)。</p>
+<p>使用外键是有成本的。比如外键通常都要求每次在修改数据时都要在另外一张表中多执行一次查找操作。虽然InnoDB 强制外键使用索引,但还是无法消除这种约束检查的开销。<strong>如果外键列的选择性很低，则会导致一个非常大且选择性很低的索引。</strong>例如，在一个非常大的表上有 status 列，并希望限制这个状态列的取值，如果该列只能取三个值一一虽然这个列本身很小，但是如果主键很大，那么这个索引就会很大一一而且这个索引除了做这个外键限制，也没有任何其他的作用了。</p>
+<p>不过，在某些场景下，外键会提升一些性能。<strong>如果想确保两个相关表始终有一致的数据那么使用外键比在应用程序中检查一致性的性能要高得多</strong>，此外，外键在相关数据的删除和更新上，也比在应用中维护要更高效，不过，<strong>外键维护操作是逐行进行的，所以这样的更新会比批量删除和更新要慢些.</strong></p>
+<p>外键约束使得查询需要额外访问一些别的表，这也意味着需要额外的锁。如果向子表中写人一条记录，外键约束会让 InnoDB 检查对应的父表的记录，也就需要对父表对应记录进行加锁操作，来确保这条记录不会在这个事务完成之时就被删除了。这会导致额外的锁等待，甚至会导致一些死锁。因为没有直接访问这些表，所以这类死锁问题往往难以排查</p>
+<p>有时，可以使用触发器来代替外键。对于相关数据的同时更新外键更合适，但是如果外键只是用作数值约束，那么触发器或者显式地限制取值会更好些。(这里，可以直接使用ENUM类型。</p>
+<p>如果只是使用外键做约束，那通常在应用程序里实现该约束会更好。外键会带来很大的额外消耗。这里没有相关的基准测试的数据，不过我们碰到过很多案例，在对性能进行剖析时发现外键约束就是瓶颈所在，删除外键后性能立即大幅提升。</p>
+<h2 id="7-4-在MySQL内部存储代码"><a href="#7-4-在MySQL内部存储代码" class="headerlink" title="7.4 在MySQL内部存储代码"></a>7.4 在MySQL内部存储代码</h2><p><strong>MySQL 允许通过触发器、存储过程、函数的形式来存储代码</strong>。从MySQL 5.1开始，还可以在<strong>定时任务中存放代码</strong>，这个定时任务也被称为<strong>“事件”</strong>。<strong>存储过程和存储函数都被统称为“存储程序”。</strong></p>
+<p>这四种存储代码都使用特殊的 SOL 语句扩展，它包含了很多过程处理语法，例如循环和条件分支等 。<strong>不同类型的存储代码的主要区别在于其执行的上下文一一也就是其输人和输出。存储过程和存储函数都可以接收参数然后返回值，但是触发器和事件却不行</strong>。</p>
+<p>有人倡导使用存储代码，也有人反对。这里我们不站在任何一边，只是列举一下在MySQL 中使用存储代码的优点和缺点。首先，它有如下优点 :</p>
+<ul>
+<li>它在服务器内部执行,离数据最近,另外在服务器上执行还可以节省带宽和网络延迟。</li>
+<li>这是一种代码重用。可以方便地统一业务规则，保证某些行为总是一致，所以也可以为应用提供一定的安全性。</li>
+<li>它可以简化代码的维护和版本更新。</li>
+<li>它可以帮助提升安全，比如提供更细粒度的权限控制。一个常见的例子是银行用于转移资金的存储过程:这个存储过程可以在一个事务中完成资金转移和记录用于审计的日志。应用程序也可以通过存储过程的接口访问那些没有权限的表。</li>
+<li>服务器端可以缓存存储过程的执行计划，这对于需要反复调用的过程，会大大降低消耗。</li>
+<li>因为是在服务器端部署的，所以备份、维护都可以在服务器端完成。所以存储程序的维护工作会很简单。它没什么外部依赖，例如，不依赖任何 Perl包和其他不想在服务器上部署的外部软件。</li>
+<li>它可以在应用开发和数据库开发人员之间更好地分工。不过最好是由数据库专家来开发存储过程，因为不是每个应用开发人员都能写出高效的 SOL查询。</li>
+</ul>
+<p>存储代码也有如下缺点:</p>
+<ul>
+<li>MySQL本身没有提供好用的开发和调试工具，所以编写MySQL的存储代码比其他的数据库要更难些。</li>
+<li>较之应用程序的代码，存储代码效率要稍微差些。例如，存储代码中可以使用的函数非常有限，所以使用存储代码很难编写复杂的字符串维护功能，也很难实现大复杂的逻辑。</li>
+<li>存储代码可能会给应用程序代码的部署带来额外的复杂性。原本只需要部署应用代码和库表结构变更，现在还需要额外地部署 MySQL内部的存储代码因为存储程序都部署在服务器内，所以可能有安全隐患。如果将非标准的加密功能放在存储程序中，那么若数据库被攻破，数据也就泄漏了。但是若将加密函数放在应用程序代码中，那么攻击者必须同时攻破程序和数据库才能获得数据存储过程会给数据库服务器增加额外的压力，而数据库服务器的扩展性相比应用服务器要差很多。</li>
+<li>MySQL 并没有什么选项可以控制存储程序的资源消耗，所以在存储过程中的一个小错误，可能直接把服务器拖死。</li>
+</ul>
+<h3 id="7-4-1-存储过程和函数"><a href="#7-4-1-存储过程和函数" class="headerlink" title="7.4.1 存储过程和函数"></a>7.4.1 存储过程和函数</h3><p>MySQL的架构本身和优化器的特性使得存储代码有一些天然的限制，它的性能也一定程度受限于此。在本书编写的时候，有如下的限制 :</p>
+<ul>
+<li><p>优化器无法使用关键字 DETERMINISTIC来优化单个查询中多次调用存储函数的情况。</p>
+</li>
+<li><p>优化器无法评估存储函数的执行成本。</p>
+</li>
+<li><p>每个连接都有独立的存储过程的执行计划缓存。如果有多个连接需要调用同一个存储过程，将会浪费缓存空间来反复缓存同样的执行计划。(如果使用的是连接池或者是持久化连接，那么执行计划缓存可能会有更长的生命周期。)</p>
+</li>
+<li><p>存储程序和复制是一组诡异组合。如果可以，最好不要复制对存储程序的调用。直接复制由存储程序改变的数据则会更好。MySQL 5.1 引的行复制能够改善这个问题。如果在 MySQL5.0 中开启了二进制志，那么要么在所有的存储过程中都增加DETERMINISTIC限制或者设置 MySQL 的选项 log bin trust function creators。</p>
+</li>
+</ul>
+<p>我们通常会希望存储程序越小、越简单越好。希望将更加复杂的处理逻辑交给上层的应用实现，通常这样会使代码更易读、易维护，也会更灵活。这样做也会让你拥有更多的计算资源，潜在的还会让你拥有更多的缓存资源。</p>
+<p>不过，对于某些操作，<strong>存储过程比其他的实现要快得多一一特别是当一个存储过程调用可以代替很多小查询的时候。如果查询很小，相比这个查询执行的成本</strong>，解析和网络开销就变得非常明显。为了证明这一点，我们先创建一个简单的存储过程，用来写入一定数量的数据到一个表中，下面是存储过程的代码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">DROP PROCEDURE IF EXISTS insert_many_rows;<br> <br>CREATE PROCEDURE insert_many_rows(IN loops INT)<br>BEGIN<br>DECLARE v1 INT;<br>SET v1 = loops;<br>WHILE v1 &gt;0 DO <br>INSERT INTO test(colum1, colum2, colum3) values(0,&#x27;qqqqqqqqqqwwwwwwwwwweeeeeeeeeerrrrrrrrrrtttttttttt&#x27;, &#x27;qqqqqqqqqqwwwwwwwwwweeeeeeeeeerrrr&#x27;);<br>SET v1 = v1 - 1;<br>END WHILE;<br>END;<br></code></pre></td></tr></table></figure>
+
+<h3 id="7-4-2-触发器"><a href="#7-4-2-触发器" class="headerlink" title="7.4.2 触发器"></a>7.4.2 触发器</h3><p><strong>触发器可以让你在执行 INSERT、UPDATE或者 DELETE 的时候，执行一些特定的操作。</strong>可以在 MySQL中指定是在 SQL 语执行前触发还是在执行后触发。触发器本身没有返回值，不过它们可以读取或者改变触发 SOL 语句所影响的数据。所以，可以使用触发器实现一些强制限制，或者某些业务逻辑，否则，就需要在应用程序中实现这些逻辑。</p>
+<p>因为使用触发器可以减少客户端和服务器之间的通信，所以触发器可以简化应用逻辑还可以提高性能。另外，还可以用于自动更新反范式化数据或者汇总表数据。例如，在示例数据库Sakila 中，我们可以使用触发器来维护 film text 表。</p>
+<p>MySQL触发器的实现非常简单，所以功能也有限。如果你在其他数据库产品中已经重度依赖触发器，那么在使用 MySQL 的时候需要注意，很多时候 MySQL触发器的表现和预想的并不一样。特别需要注意以下几点 :</p>
+<ul>
+<li><strong>对每一个表的每一个事件，最多只能定义一个触发器 (换句话说，不能在 AFTERINSERT上定义两个触发器)。</strong></li>
+<li><strong>MySQL 只支持“基于行的触发”一一也就是说，触发器始终是针对一条记录的，而不是针对整个 SOL语句的。</strong>如果变更的数据集非常大的话，效率会很低。</li>
+</ul>
+<p>下面这些触发器本身的限制也适用于MySQL :</p>
+<ul>
+<li>触发器可以掩盖服务器背后的工作，一个简单的 SQL 语句背后，因为触发器，可能包含了很多看不见的工作。例如，触发器可能会更新另一个相关表，那么这个触发器会让这条 SQL影响的记录数翻一倍。</li>
+<li>触发器的问题也很难排查，如果某个性能问题和触发器相关，会很难分析和定位。</li>
+<li>触发器可能导致死锁和锁等待。如果触发器失败，那么原来的 SQL 语句也会失败。如果没有意识到这其中是触发器在搞鬼，那么很难理解服务器抛出的错误代码是什么思。</li>
+</ul>
+<p>如果仅考虑性能，那么MySQL 触发器的实现中对服务器限制最大的就是它的“基于行的触发”设计。因为性能的原因，很多时候无法使用触发器来维护汇总和缓存表。使用触发器而不是批量更新的一个重要原因就是，使用触发器可以保证数据总是一致的。</p>
+<p>如果仅考虑性能，那么 MySQL触发器的实现中对服务器限制最大的就是它的“基于行的触发”设计。因为性能的原因，很多时候无法使用触发器来维护汇总和缓存表。使用触发器而不是批量更新的一个重要原因就是，使用触发器可以保证数据总是一致的。</p>
+<p>触发器并不能一定保证更新的原子性。例如，一个触发器在更新 MyISAM 表的时候，如果遇到什么错误，是没有办法做回滚操作的。这时，触发器可以抛出错误。假设你在一个MyISAM表上建立一个AFTER UPDATE的触发器，用来更新另一个MyISAM表。如果触发器在更新第二个表的时候遇到错误导致更新失败，那么第一个表的更新并不会回滚。</p>
+<p><strong>在InnoDB 表上的触发器是在同一个事务中完成的，所以它们执行的操作是原子的，原操作和触发器操作会同时失败或者成功。</strong>不过，如果在 InnoDB 表上建发器去检查数据的一致性，需要特别小心MVCC，稍不小心，你可能会获得错误的结果。假设，你想实现外键约束，但是不打算使用InnoDB 的外键约束。若打算编写一个BEFORE INSERT触发器来检查写入的数据对应列在另一个表中是存在的，但若你在触发器中没有使用SELECT FOR UPDATE，那么并发的更新语可能会立刻更新对应记录，导致数据不一致。</p>
+<p>我们不是危言耸听，让大家不要使用触发器。相反，触发器非常有用，尤其是实现一些约束、系统维护任务，以及更新反范式化数据的时候。</p>
+<p>还可以使用触发器来记录数据变更日志。这对实现一些自定义的复制会非常方便，比如需要先断开连接，然后修改数据，最后再将所有的修改重新合并回去的情况。一个简单的例子是，一组用户各自在自己的个人电脑上工作，但他们的操作都需要同步到一台主数据库上，然后主数据库会将他们所有人的操作都分发给每个人。实现这个系统需要做两次同步操作。触发器就是构建整个系统的一个好办法。每个人的电脑上都可以使用一个触发器来记录每一次数据的修改，并将其发送到主数据库中。然后，再使用 MySQL的复制将主数据库上的所有操作都复制一份到本地并应用。这里需要额外注意的是，如果触发器基于有自增主键的记录，并且使用的是基于语句的复制，那么自增长可能会在复制中出现不一致。</p>
+<p>有时候可以使用一些技巧绕过触发器是“基于行的触发”这个限制。Roland Bouman 发现对于 BEFORE触发器除了处理的第一条记录，触发器函数 ROW COUNT() 总是会返回1。可以使用这个特点，使得触发器不再是针对每一行都运行，而是针对一条 SQL 语句运行一次。这和真正意义上的单条 SQL 语句的触发器并不相同，不过可以使用这个技术来模拟单条SQL语句的 BEFORE触发器。这个行为可能是 MySQL的一个缺陷，未来版本中可能会被修复，所以在使用这个技巧的时候，需要先验证在你的 MySQL 版本中是否适用另外，在升级数据库的时候还需要检查这类触发器是否还能够正常工作。下面是一个使用这个技巧的例子 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">CREATE TRIGGER fake statement_trigger<br>BEFORE INSERT ON sometable<br>FOR EACH ROW<br>BEGIN<br>    DECLARE v_row_count INT DEFAULT ROW_COUNT();<br>    IF v_row_count &lt;&gt; 1 THEN<br>    	-- Your code here<br>    END IF;<br>END;<br></code></pre></td></tr></table></figure>
+
+<h4 id="7-4-2-1-一个触发器的demo"><a href="#7-4-2-1-一个触发器的demo" class="headerlink" title="7.4.2.1 一个触发器的demo"></a>7.4.2.1 一个触发器的demo</h4><p>在 sakila 数据库中，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">--<br>-- Table structure for table `film_text`<br>-- <br>-- InnoDB added FULLTEXT support in 5.6.10. If you use an<br>-- earlier version, then consider upgrading (recommended) or <br>-- changing InnoDB to MyISAM as the film_text engine<br>--<br><br>-- Use InnoDB for film_text as of 5.6.10, MyISAM prior to 5.6.10.<br>SET @old_default_storage_engine = @@default_storage_engine;<br>SET @@default_storage_engine = &#x27;MyISAM&#x27;;<br>/*!50610 SET @@default_storage_engine = &#x27;InnoDB&#x27;*/;<br><br>CREATE TABLE film_text (<br>  film_id SMALLINT NOT NULL,<br>  title VARCHAR(255) NOT NULL,<br>  description TEXT,<br>  PRIMARY KEY  (film_id),<br>  FULLTEXT KEY idx_title_description (title,description)<br>) DEFAULT CHARSET=utf8mb4;<br><br>SET @@default_storage_engine = @old_default_storage_engine;<br><br>--<br>-- Triggers for loading film_text from film<br>--<br><br>DELIMITER ;;<br>CREATE TRIGGER `ins_film` AFTER INSERT ON `film` FOR EACH ROW BEGIN<br>    INSERT INTO film_text (film_id, title, description)<br>        VALUES (new.film_id, new.title, new.description);<br>  END;;<br><br><br>CREATE TRIGGER `upd_film` AFTER UPDATE ON `film` FOR EACH ROW BEGIN<br>    IF (old.title != new.title) OR (old.description != new.description) OR (old.film_id != new.film_id)<br>    THEN<br>        UPDATE film_text<br>            SET title=new.title,<br>                description=new.description,<br>                film_id=new.film_id<br>        WHERE film_id=old.film_id;<br>    END IF;<br>  END;;<br><br><br>CREATE TRIGGER `del_film` AFTER DELETE ON `film` FOR EACH ROW BEGIN<br>    DELETE FROM film_text WHERE film_id = old.film_id;<br>  END;;<br><br>DELIMITER ;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="7-4-3-事件"><a href="#7-4-3-事件" class="headerlink" title="7.4.3 事件"></a>7.4.3 事件</h3><p>事件是 MySQL 5.1引的一种新的存储代码的方式。<strong>它类似于 Linux 的定时任务，不过是完全在 MySQL 内部实现的。你可以创建事件，指定 MySQL 在某个时候执行一段SOL代码，或者每隔一个时间间隔执行一段 SOL代码。</strong>通常，我们会把复杂的 SOL都封装到一个存储过程中，这样事件在执行的时候只需要做一个简单的 CALL调用。</p>
+<p><strong>中间省略了一些不重要的。。。</strong></p>
+<p>还可以在表INFORMATION SCHEMAEVENTS中看到各个事状态，例如这个事件最后一次被执行的时间等。</p>
+<p>类似的，一些适用于存储过程的考虑也同样适用于事件。首先，创建事件意味着给服务器带来额外工作。<strong>事件实现机制本身的开销并不大</strong>，但是事件需要执行 SQL，则可能会对性能有很大的影响。更进一步，事件和其他的存储程序一样，在和基于语句的复制一起工作时，也可能会触发同样的问题。<strong>事件的一些典型应用包括定期地维护任务、重建缓存、构建汇总表来模拟物化视图，或者存储用于监控和诊断的状态值。</strong><br>下面的例子创建了一个事件，它会每周一次针对某个数据库运行一个存储过程 (后面我们将展示如何创建这个存储过程):</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">CREATE EVENT optimize somedb ON SCHEDULE EVERY 1 WEEK<br>DO<br>CALL optimize tables(&#x27;somedb&#x27;);<br></code></pre></td></tr></table></figure>
+
+<p>你可以指定事件本身是否被复制。根据需要，有时需要被复制，有时则不需要。看前面的例子，你可能会希望在所有的备库上都运行 OPTIMIZE TABLE，不过要注意如果所有的备库同时执行，可能会影响服务器的性能 (会对表加锁)。</p>
+<h3 id="7-4-4-在存储程序中保留注释"><a href="#7-4-4-在存储程序中保留注释" class="headerlink" title="7.4.4 在存储程序中保留注释"></a>7.4.4 在存储程序中保留注释</h3><p>存储过程、存储函数、触发器、事件通常都会包含大量的重要代码，在这些代码中加上注释就非常有必要了。但是这些注释可能不会存储在 MySQL 服务器中，因为 MySQL的命令行客户端会自动过滤注释(命令行客户端的这个“特性”令人生厌，不过这就是生活)。</p>
+<h2 id="7-5-游标"><a href="#7-5-游标" class="headerlink" title="7.5 游标"></a>7.5 游标</h2><p>MySQL 在服务器端提供只读的、单向的游标，而且只能在存储过程或者更底层的客户端API中使用。因为 MySQL 游标中指向的对象都是存储在临时表中而不是实际查询到的数据，所以 MySQL 游标总是只读的。它可以逐行指向查询结果，然后让序做进步的处理。在一个存储过程中，可以有多个游标，也可以在循环中“嵌套”地使用游标。</p>
+<p>MySQL 的游标设计也为粗心的人“准备”了陷阱。因为是使用临时表实现的，所以它在效率上给开发人员一个错觉。需要记住的最重要的一点是:当你打开一个游标的时候需要执行整个查询。考虑下面的存储过程:</p>
+<h2 id="7-6-绑定变量"><a href="#7-6-绑定变量" class="headerlink" title="7.6 绑定变量"></a>7.6 绑定变量</h2><p>从MySQL 4.1版本开始，就支持服务器端的绑定变量 (prepared statement)，这大大提高了客户端和服务器端数据传输的效率。你若使用一个支持新协议的客户端，如MySQL C API，就可以使用绑定变量功能了。另外，Java和NET 的也都可以使用各自的客户端Connector&#x2F;J和Connector&#x2F;NET 来使用绑定变量。最后，还有一个SQL接口用于支持绑定变量，后面我们将讨论这个 (这里容易引起困扰)。</p>
+<p>当创建一个绑定变量 SQL时，客户端向服务器发送了一个 SOL语句的原型。服务器端收到这个 SOL语句框架后，解析并存储这个 SOL语句的部分执行计划，返回给客户端一个 SOL 语句处理句柄。以后每次执行这类查询，客户端都指定使用这个句柄.</p>
+<p>绑定变量的 SQL，使用问号标记可以接收参数的位置，当真正需要执行具体查询的时候，则使用具体值代替这些问号。例如，下面是一个绑定变量的 SOL 语句 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">INSERT INTO tbl(col1，col2，col3) VALUES (?，?，?);<br></code></pre></td></tr></table></figure>
+
+<p>可以通过向服务器端发送各个问号的取值和这个 SOL 的句柄来执行一个具体的查询。反复使用这样的方式执行具体的查询，这正是绑定变量的优势所在。具体如何发送取值参数和SOL句柄，则和各个客户端的编程语言有关。使用Java和NET的MySQL连接器就是一种办法。很多使用MySQL C语言链接库的客户端可以提供类似的接口，需要根据使用的编程语言的文档来了解如何使用绑定变量。</p>
+<p>因为如下的原因，MySQL在使用绑定变量的时候可以更高效地执行大量的重复语句:</p>
+<ul>
+<li><strong>在服务器端只需要解析一次 SQL语句。</strong></li>
+<li><strong>在服务器端某些优化器的工作只需要执行一次，因为它会缓存一部分的执行计划以二进制的方式只发送参数和句柄，比起每次都发送 ASCI码文本效率更高，一个二进制的日期字段只需要三个字节，但如果是 ASCII码则需要十个字节。不过最大的节省还是来自于 BLOB和TEXT字段，绑定变量的形式可以分块传输，而无须一次性传输。二进制协议在客户端也可能节省很多内存，减少了网络开销，另外，还节省了将数据从存储原始格式转换成文本格式的开销。</strong></li>
+<li><strong>仅仅是参数一一而不是整个查询语句一一需要发送到服务器端，所以网络开销会更小。</strong></li>
+<li><strong>MySQL 在存储参数的时候，直接将其存放到缓存中，不再需要在内存中多次复制.</strong></li>
+</ul>
+<p>绑定变量相对也更安全。无须在应用程序中处理转义，一则更简单了，二则也大大减少了SQL 注入和攻击的风险。(任何时候都不要信任用户输入，即使是使用绑定变量的时候。)</p>
+<p>可以只在使用绑定变量的时候才使用二进制传输协议。如果使用普通的 MySQL_query()接口则不会使用二进制传输协议。还有一些客户端让你使用绑定变量，先发送带参数的绑定 SQL，然后发送变量值，但是实际上，这些客户端只是模拟了绑定变量的接口，最后还是会直接用具体值代替参数后，再使用 MySQL query()发送整个查询语句</p>
+<h3 id="7-6-1-绑定变量的优化"><a href="#7-6-1-绑定变量的优化" class="headerlink" title="7.6.1 绑定变量的优化"></a>7.6.1 绑定变量的优化</h3><p>对使用绑定变量的 SQL，MySQL 能够缓存其部分执行计划，如果某些执行计划需要根据传入的参数来计算时，MySQL就无法缓存这部分的执行计划。根据优化器什么时候工作，可以将优化分为三类。在本书编写的时候，下面的三点是适用的。<br>在准备阶段<br>        服务器解析 SQL语句，移除不可能的条件，并且重写子查询。</p>
+<p>在第一次执行的时候<br>        如果可能的话，服务器先简化嵌套循环的关联，并将外关联转化成内关联。</p>
+<p>在每次 SOL 语句执行时<br>服务器做如下事情 :</p>
+<ul>
+<li>过滤分区。</li>
+<li>如果可能的话，尽量移除 COUNT()、MIN()和MAX()。</li>
+<li>移除常数表达式。</li>
+<li>检测常量表。</li>
+<li>做必要的等值传播</li>
+<li>分析和优化ref、range和索引优化等访问数据的方法优化关联顺序。</li>
+</ul>
+<p>参考第 6章，可以了解更多关于这些优化的信息。理论上，有些优化只需要做一次，但实际上，上面的操作还是都会被执行</p>
+<h3 id="7-6-2-SQL接口的绑定变量"><a href="#7-6-2-SQL接口的绑定变量" class="headerlink" title="7.6.2 SQL接口的绑定变量"></a>7.6.2 SQL接口的绑定变量</h3><p>在4.1和更新的版本中，MySQL 支持了SQL接口的定变量。不使用二进制传输协议也可以直接以SOL的方式使用绑定变量。下面案例展示了如何使用SOL接口的绑定变量:</p>
+<img src="/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230107232028503.png" srcset="/img/loading.gif" lazyload class="">
+
+<h3 id="7-6-3-绑定变量的限制"><a href="#7-6-3-绑定变量的限制" class="headerlink" title="7.6.3 绑定变量的限制"></a>7.6.3 绑定变量的限制</h3><p>关于绑定变量的一些限制和注意事项如下 :</p>
+<ul>
+<li><strong>绑定变量是会话级别的，所以连接之间不能共用绑定变量句柄。</strong>同样地，一旦连接断开，则原来的句柄也不能再使用了。(连接池和持久化连接可以在一定程度上缓解这个问题。)</li>
+<li>在MySQL5.1版本之前，绑定变量的SQL是不能使用查询缓存的</li>
+<li><strong>并不是所有的时候使用绑定变量都能获得更好的性能。如果只是执行一次 SQL，那么使用绑定变量方式无疑比直接执行多了一次额外的准备阶段消耗，而且还需要一次额外的网络开销。</strong>(要正确地使用绑定变量，还需要在使用完成后，释放相关的资源。</li>
+<li>当前版本下，还不能在存储函数中使用绑定变量 (但是存储过程中可以使用)如果总是忘记释放绑定变量资源，则在服务器端很容易发生资源“泄漏”。绑定变量SOL 总数的限制是一个全局限制，所以某一个地方的错误可能会对所有其他的线程都产生影响。</li>
+<li>有些操作，如 BEGIN，无法在绑定变量中完成</li>
+</ul>
+<h2 id="7-7-用户自定义函数"><a href="#7-7-用户自定义函数" class="headerlink" title="7.7 用户自定义函数"></a>7.7 用户自定义函数</h2><p>从很早开始，MySQL 就支持用户自定义函数 (UDF)。存储过程只能使用 SQL 来编写,而<strong>UDF 没有这个限制，你可以使用支持 C语言调用约定的任编程语言来实现。</strong><br>UDF 必须事先编译好并动态链接到服务器上，这种平台相关性使得 UDF 在很多方面都很强大。UDF 速度非常快，而且可以访问大量操作系统的功能，还可以使用大量库函数使用 SOL实现的存储函数在实现一些简单操作上很有优势，诸如计算球体上两点之间的距离，但是如果操作涉及到网络交互，那么只能使用UDF了。同样地，如果需要一个MySQL 不支持的统计聚合函数，而且无法使用 SQL 编写的存储函数来实现的话，通常使用UDF是很容易实现的。<br>能力越大，责任越大。所以在 UDF 中的一个错误很可能会让服务器直接崩溃，甚至扰乱服务器的内存或者数据，另外，所有 C 语言具有的潜在风险，UDF 也都有。</p>
+<h2 id="7-8-插件"><a href="#7-8-插件" class="headerlink" title="7.8 插件"></a>7.8 插件</h2><p>除了UDF，MySQL还支持各种各样的插件。这些插件可以在MySQL 中新增启动选项和状态值，还可以新增<strong>INFORMATION_SCHEMA表，或者在MySQL的后台执行任务</strong>，等等。</p>
+<ul>
+<li>存储过程插件<br>存储过程插件可以帮你在存储过程运行后再处理一次运行结果。这是一个很古老的插件了，和UDF 有些类似，多数人都可能忘记了这个插件的存在。内置的PROCEDUREANALYSE就是一个很好的示例。</li>
+<li>后台插件<br>后台插件可以让你的程序在 MySQL 中运行，可以实现自己的网络监听、执行自己的定期任务。后台插件的一个典型例子就是在 Percona Server 中包含的HandlerSocket 插件。它监听一个新的网络端口，使用一个简单的协议可以帮你无须使用SQL接口直接访问 InnoDB 数据，这也使得MySQL能够像一些NOSOL一样具有非常高的性能。</li>
+</ul>
+<h2 id="7-9-字符集和校对"><a href="#7-9-字符集和校对" class="headerlink" title="7.9 字符集和校对"></a>7.9 字符集和校对</h2><p>字符集是指一种从二进制编码到某类字符符号的映射，可以参考如何使用一个字节来表示英文字母。“校对”是指一组用于某个字符集的排序规则。MySQL4.1 和之后的版本中每一类编码字符都有其对应的字符集和校对规则生。MySQL对各种字符集的支持非常完<br>善，但是这也带来了一定的复杂性，某些场景下甚至会有一定的性能牺牲。(另外，曾经Drizzle 放弃了所有的字符集，所有字符全部统一使用 UTF-8。)</p>
+<h2 id="7-10-全文索引"><a href="#7-10-全文索引" class="headerlink" title="7.10  全文索引"></a>7.10  全文索引</h2><p><strong>全文索引是为了解决需要基于相似度的查询，而不是精确数值比较。</strong></p>
+<p><strong>虽然使用 <code>like + %</code> 也可以实现模糊匹配，但是对于大量的文本数据检索，是不可想象的。全文索引在大量的数据面前，能比 <code>like</code> 快 N 倍，速度不是一个数量级。</strong></p>
+<p>这里有个网页，介绍概念的 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/yangyxd/p/15252691.html">MySQL全文索引</a> </p>
+<p><strong>通过数值比较、范围过滤等就可以完成绝大多数我们需要的查询了。但是，如果你希望通过关键字的匹配来进行查询过滤，那么就需要基于相似度的查询，而不是原来的精确数值比较。全文索引就是为这种场景设计的。</strong></p>
+<p>全文索引有着自己独特的语法。没有索引也可以工作，如果有索引效率会更高。用于全文搜索的索引有着独特的结构，帮助这类查询找到匹配某些关键字的记录。</p>
+<p>你可能没有在意过全文索引，不过至少应该对一种全文索引技术比较熟悉:互联网搜索引擎。虽然这类搜索引擎的索引对象是超大量的数据，并且通常其背后都不是关系型数据库，不过全文索引的基本原理都是一样的。</p>
+<p>全文索引可以支持各种字符内容的搜索 (包括CHARVARCHAR和TEXT类型)，也支持自然语言搜索和布尔搜索。在 MySQL 中全文索引有很多的限制12，其实现也很复杂，但是因为它是 MySQL内置的功能，而且满足很多基本的搜索需求，所以它的应用仍然非常广泛。本章我们将介绍如何使用全文索引，以及如何为应用设计更高性能的全文索引。</p>
+<p>在本书编写时，在标准的MySQL 中，只有 MyISAM引警支持全文索引。不过在还没有正式发布的 MySQL 5.6 中，InnoDB 已经实验性质地支持全文索引了。除此，还有第三方的存储引擎，如 Groonga，也支持全文索引。</p>
+<p>事实上，MyISAM 对全文索引的支持有很多的限制，例如表级别锁对性能的影响、数据文件的崩溃、崩溃后的恢复等，这使得 MyISAM 的全文索引对于很多应用场景并不合适所以，多数情况下我们建议使用别的解决方案，例如 Sphinx、Lucene、Solr、GroongaXapian 或者 Senna，再或者可以等 MySQL 5.6 版本正式发布后，直接使用InnoDB 的全文索引。如果 MyISAM 的全文索引确实能满足应用的需求，那么可以继续阅读本节。</p>
+<p>MyISAM 的全文索引作用对象是一个“全文集合”，这可能是某个数据表的一列，也可能是多个列。具体的，对数据表的某一条记录，MySQL 会将需要索引的列全部拼接成一个字符串，然后进行索引。</p>
+<p>MyISAM的全文索引是一类特殊的 B-Tree 索引，共有两层。第一层是所有关键字，然后对于每一个关键字的第二层，包含的是一组相关的“文档指针”。全文索引不会索引文档对象中的所有词语，它会根据如下规则过滤一些词语。</p>
+<ul>
+<li>停用词列表中的词都不会被索引。默认的停用词根据通用英语的使用来设置，可以使用参数 ft_stopword_fle指定一组外部文件来使</li>
+<li>用自定义的停用词对于长度大于  ft_max_word_len 的词语和长度小于 ft_max_word_len 的词语，都不会被索引。</li>
+</ul>
+<p>全文索引并不会存储关键字具体匹配在哪一列，如果需要根据不同的列来进行组合查询那么不需要针对每一列来建立多个这类索引。<br>这也意味着不能在 MATCH AGAINST子中指定哪个列的相关性更重要。通常构建一个网站的搜索引擎是需要这样的功能，例如，你可能希望优先搜索出那些在标题中出现过的文档对象。如果需要这样的功能，则需要编写更复杂的查询语句。</p>
+<h3 id="7-10-1-自然语言的全文索引"><a href="#7-10-1-自然语言的全文索引" class="headerlink" title="7.10.1 自然语言的全文索引"></a>7.10.1 自然语言的全文索引</h3><p>自然语言搜索引擎将计算每一个文档对象和查询的相关度。这里，相关度是基于匹配的关键词个数，以及关键词在文档中出现的次数。在整个索引中出现次数越少的词语，配时的相关度就越高。相反，非常常见的单词将不会搜索，即使不在停用词列表中出现，如果一个词语在超过 50% 的记录中都出现了，那么自然语言搜索将不会搜索这类词语。</p>
+<p>全文索引的语法和普通查询略有不同。可以根据 WHERE 子句中的 MATCH AGAINST 来区分查询是否使用全文索引。我们来看一个示例。在标准的数据库 Sakila 中，数据表 filmtext 在字段 title和 description 上建立了全文索引;</p>
+<img src="/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230108235047219.png" srcset="/img/loading.gif" lazyload class="">
+
+<p>下面是一个使用自然语言搜索的查询 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">SELECT<br>	film_id,<br>	title,<br>	RIGHT (description, 25),<br>	MATCH (title, description) AGAINST (&#x27;factory casualties&#x27;) AS relevance<br>FROM<br>	sakila.film_text<br>WHERE<br>	MATCH (title, description) AGAINST (&#x27;factory casualties&#x27;);<br>-- relevance 翻译为关联<br></code></pre></td></tr></table></figure>
+
+<img src="/2023/09/27/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/image-20230108235356912.png" srcset="/img/loading.gif" lazyload class="">
+
+<p><strong>MySQL 将搜索词语分成两个独立的关键词进行搜索，搜索在 title和 description字段组成的全文索引上进行</strong>。注意，只有一条记录同时包含全部的两个关键词，有三个查询结果只包含关键字 “casualties” (这是整个表中仅有的三条包含该关键词的记录)，这三个结果都在结果列表的前面。这是因为查询结果是根据与关键词的相似度来进行排序的。</p>
+<p>和普通查询不同，这类查询自动按照相似度进行排序。在使用全文索引进行排序的时候，MySQL 无法再使用索引排序。所以如果不想使用文件排序的话，那么就不要在查询中使用ORDER BY子句。</p>
+<p>从上面的示例可以看到，函数 MATCH() 将返回关键词匹配的相关度，是一个浮点数字。你可以根据相关度进行匹配，或者将此直接展现给用户。在一个查询中使用两次MATCH()函数并不会有额外的消耗，MSOL 会自动识别并只进行一次搜索。不过，如果你将MATCH()函数放到ORDER BY子中，MySQL将会使用文件排序.</p>
+<p>在MATCH()函数中指定的列必须和在全文索引中指定的列完全相同，否则就无法使用全文索引。这是因为全文索引不会记录关键字是来自哪一列的。</p>
+<p>这也意味着无法使用全文索引来查询某个关键字是否在某一列中存在。这里介绍一个绕过该问题的办法:根据关键词在多个不同列的全文索引上的相关度来算出排名值，然后依此来排序。我们可以在某一列上加上如下索 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">ALTER TABLE film_text ADD FULLTEXT KEY(title);<br></code></pre></td></tr></table></figure>
+
+<p>这样，我们可以将 title 匹配乘以 2 来提高它的相似度的权重</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">SELECT<br>	film_id,<br>	RIGHT (description, 25), <br>	ROUND(MATCH(title, description) AGAINST (&#x27;factory casualties&#x27;), 3 ) AS full_rel,<br>	ROUND( MATCH (title) AGAINST (&#x27;factory casualties&#x27;), 3 ) AS title_rel<br>FROM<br>	sakila.film_text<br>WHERE<br>	MATCH (title, description) AGAINST (&#x27;factory casualties&#x27;)<br>ORDER BY<br>	(<br>		2 * MATCH (title) AGAINST (&#x27;factory casualties&#x27;)<br>	) + MATCH (title, description) AGAINST (&#x27;factory casualties&#x27;) DESC;<br></code></pre></td></tr></table></figure>
+
+<p>因为上面的查询需要做文件排序，所以这并不是一个高效的做法</p>
+<h2 id="7-11-分布式-XA-事务"><a href="#7-11-分布式-XA-事务" class="headerlink" title="7.11 分布式(XA)事务"></a>7.11 分布式(XA)事务</h2><p><strong>存储引擎的事务特性能够保证在存储引擎级别实现ACID(参考前面介绍的“事务”</strong>.而分布式事务则让存储引擎级别的 ACID 可以扩展到数据库层面，甚至可以扩展到多个数据库之间一一这需要通过两阶段提交实现。MySQL 5.0和更新版本的数据库已经开始支持 XA 事务了。<br>XA 事务中需要有一个事务协调器来保证所有的事务参与者都完成了准备工作 (第一阶段)。如果协调器收到所有的参与者都准备好的消息，就会告诉所有的事务可以提交了这是第二阶段。MySQL 在这个 XA 事务过程中扮演一个参与者的角色，而不是协调者。</p>
+<p>实际上，在MySQL中有两种XA 事务。一方面，MySQL 可以参与到外部的分布式事务中，另一方面，还可以通过 XA 事务来协调存储引擎和二进制日志。</p>
+<h2 id="7-12查询缓存"><a href="#7-12查询缓存" class="headerlink" title="7.12查询缓存"></a>7.12查询缓存</h2><p><strong>注： 主要围绕着 “缓存完整的 SELECT查询结果” 这点来说论述</strong></p>
+<p>很多数据库产品都能够<strong>缓存查询的执行计划</strong>，对于相同类型的 SQL就可以跳过 SQL解析和执行计划生成阶段。MySQL 在某些场景下也可以实现，但是 <strong>MySQL 还有另一种不同的缓存类型:，也就是“查询存”</strong>。本节将详细介绍这类缓存。</p>
+<p><strong>MySQL查询缓存保存查询返回的完整结果。当查询命中该缓存MySQL会立刻返回结果跳过了解析、优化和执行阶段。</strong></p>
+<p>【这里考虑，计算 sql预计hash值，然后作为key，sql结果作为值】</p>
+<p><strong>查询缓存系统会跟踪查询中涉及的每个表，如果这些表发生变化，那么和这个表相关的所有的缓存数据都将失效。这种机制效率看起来比较低，因为数据表变化时很有可能对应的查询结果并没有变更，但是这种简单实现代价很小，而这点对于一个非常繁忙的系统来说非常重要。</strong> 【<strong>论述具体实现</strong>】</p>
+<p><strong>查询缓存对应用程序是完全透明的。应用程序无须关心 MySQL 是通过查询缓存返回的结果还是实际执行返回的结果。</strong>事实上,这两种方式执行的结果是完全相同的。换句话说查询缓存无须使用任何语法。无论是 MySOL 开启或关闭查询缓存，对应用程序都是透的。</p>
+<p>随着现在的通用服务器越来越强大，查询缓存被发现是一个影响服务器扩展性的因素它可能成为整个服务器的资源竞争单点，在多核服务器上还可能导致服务器僵死。后面我们将详细介绍如何配合查询缓存，但是很多时候我们还是认为应该默认关闭查询缓存如果查询缓存作用很大的话，那就配置一个很小的查询缓存空间(如几十兆)。后面我们将解释如何判断在你的系统压力下打开查询缓存是否有好处。</p>
+<h3 id="7-12-1-MySQL如何判断缓存命中"><a href="#7-12-1-MySQL如何判断缓存命中" class="headerlink" title="7.12.1 MySQL如何判断缓存命中"></a>7.12.1 MySQL如何判断缓存命中</h3><p>MySQL 判断缓存命中的方法很简单: <strong>缓存存放在一个引用表中，通过一个哈希值引用，这个哈希值包括了如下因素，即查询本身、当前要查询的数据库</strong>、客户端协议的版本等些其他可能会影响返回结果的信息。</p>
+<p>当判断缓存是否命中时，MySQL 不会解析、“正规化”或者参数化查询语句，而是直接使用SQL语句和客户端发送过来的其他原始信息。<strong>任何字符上的不同，例如空格、注释一一任何的不同一一都会导致缓存的不命中</strong>。所以在编写 SOL 语的时候，需要特别注意这点。通常使用统一的编码规则是一个好的习惯，在这里这个好习惯会让你的系统运行得更快。</p>
+<p><strong>当查询语句中有一些不确定的数据时，则不会被缓存。例如包含函数 NOW()或者 CURRENTDATE()的查询不会被缓存。</strong>类似的，包含 CURRENT USER 或者 CONNECTION ID()的查询语句因为会根据不同的用户返回不同的结果，所以也不会被缓存。事实上，如果查询中包含任何<strong>用户自定义函数、存储函数、用户变量、临时表、MySQL库中的系统表，或者任何包含列级别权限的表，都不会被缓存。</strong>【如果想知道所有情况，建议阅读 MySOL官方手册。】</p>
+<p>我们常听到 :“如果查询中包含一个不确定的函数，MySQL 则不会检查查询缓存”。这个说法是不正确的。因为<strong>在检查查询缓存的时候，还没有解析 SOL语句，所以MySOL并不知道查询语句中是否包含这类函数。</strong>在检查查询缓存之前，MySQL 只做一件事情就是通过一个大小写不敏感的检查看看 SQL语是不是以 SEL开头。</p>
+<p><strong>准确的说法应该是:“如果查询语句中包含任何的不确定函数，那么在查询缓存中是不可能找到缓存结果的”。因为即使之前刚刚执行了这样的查询,结果也不会放在查询缓存中.MySQL在任何时候只要发现不能被缓存的部分，就会禁止这个查询被缓存。</strong></p>
+<p>所以，如果希望换成一个带日期的查询，那么最好将日期提前计算好，而不要直接使用函数。例如 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs MySQL">... DATE SUB(CURRENT DATE，INTERVAL 1 DAY) ...  -- Not cacheable!<br>... DATE SUB(&#x27;2007-07-14’,INTERVAL 1 DAY)  ...  -- Cacheable...<br></code></pre></td></tr></table></figure>
+
+<p>因为查询缓存是在完整的 SELECT 语基础上的，而且只是在刚收到 SQL 语的时候才检查，所以子查询和存储过程都没办法使用查询缓存。在MySQL 5.1之前的版本中绑定变量也无法使用查询缓存。</p>
+<p>MySQL的查询缓存在很多时候可以提升查询性能，在使用的时候，有一些问题需要特别注意。首先，<strong>打开查询缓存对读和写操作都会带来额外的消耗</strong> :</p>
+<ul>
+<li>读查询在开始之前必须先检查是否命中缓存.</li>
+<li>如果这个读查询可以被缓存，那么当完成执行后，MySQL 若发现查询缓存中没有这个查询，会将其结果存入查询缓存，这会带来额外的系统消耗。</li>
+<li>这对写操作也会有影响，因为当向某个表写入数据的时候，MySOL 必须将对应表的所有缓存都设置失效。如果查询缓存非常大或者碎片很多，这个操作就可能会带来很大系统消耗(设置了很多的内存给查询缓存用的时候)。</li>
+</ul>
+<p>虽然如此，查询缓存仍然可能给系统带来性能提升。但是，如上所述，这些额外消耗也可能不断增加，再加上对查询缓存操作是一个加锁排他操作，这个消耗可能不容小觑。</p>
+<p>对InnoDB 用户来说，事务的一些特性会限制查询缓存的使用。当一个语句在事务中修改了某个表，MySQL 会将这个表的对应的查询缓存都设置失效，而事实上，InnoDB的多版本特性会暂时将这个修改对其他事务屏蔽。在这个事务提交之前，这个表的相关查询是无法被缓存的，所以所有在这个表上面的查询一一内部或外部的事务一一都只能在该事务提交后才被缓存。<strong>因此，长时间运行的事务，会大大降低查询缓存的命中率。</strong></p>
+<p>如果查询缓存使用了很大量的内存，缓存失效操作就可能成为一个非常严重的问题瓶颈。<strong>如果缓存中存放了大量的查询结果，那么缓存失效操作时整个系统都可能会僵死一会儿。因为这个操作是靠一个全局锁操作保护的，所有需要做该操作的查询都要等待这个锁，而且无论是检测是否命中缓存、还是缓存失效检测都需要等待这个全局锁。</strong>第 3 章中有一个真实的案例，为大家展示查询缓存过大时带来的系统消耗。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/MySQL/" class="print-no-link">#MySQL</a>
+      
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
+      
+        <a href="/tags/%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E7%AC%AC%E4%B8%89%E7%89%88%E7%AC%94%E8%AE%B0/" class="print-no-link">#高性能MySQL第三版笔记</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>高性能MySQL第三版笔记</div>
+      <div>https://perfectbullet.github.io/2023/09/27/高性能MySQL第三版笔记/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>perfectbullet</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年9月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/09/21/Manage%20data%20in%20Docker/" title="Manage data in Docker">
+                        <span class="hidden-mobile">Manage data in Docker</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
